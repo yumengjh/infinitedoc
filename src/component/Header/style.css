@@ -1,0 +1,91 @@
+.header {
+  height: 56px;
+  padding: 0 20px;
+  /* background: #ffffff; */
+  border-bottom: 1px solid #e5e7eb;
+
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+/* 左侧 */
+.header-left {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.header-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #111827;
+}
+
+.header-lock {
+  font-size: 14px;
+  color: #6b7280;
+}
+
+/* 右侧 */
+.header-right {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+/* AI 标记 */
+.header-badge {
+  font-size: 12px;
+  font-weight: 600;
+  color: #16a34a;
+  border: 1px solid #16a34a;
+  border-radius: 999px;
+  padding: 2px 8px;
+}
+
+/* 图标按钮 */
+.icon-btn {
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+  font-size: 16px;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.icon-btn:hover {
+  background: #f3f4f6;
+}
+
+/* 普通按钮 */
+.btn {
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  border: 1px solid #d1d5db;
+  background: #ffffff;
+  color: #111827;
+  font-size: 14px;
+  cursor: pointer;
+}
+
+.btn:hover {
+  background: #f9fafb;
+}
+
+/* 主按钮（编辑） */
+.btn.primary {
+  background: #22c55e;
+  border-color: #22c55e;
+  color: #ffffff;
+}
+
+.btn.primary:hover {
+  background: #16a34a;
+}

@@ -1,0 +1,119 @@
+/* ===== 容器（只包侧边栏 + resizer） ===== */
+.app-container {
+  display: inline-flex;
+  align-items: stretch;
+  height: 100%;
+}
+
+/* ===== Sidebar ===== */
+.sidebar {
+  flex: 0 0 auto;
+  /* background: #ffffff; */
+  padding: 12px;
+  overflow: hidden;
+  /* border-right: 1px solid #f5f5f5; */
+
+  transition: width 0.32s cubic-bezier(0.4, 0, 0.2, 1),
+    padding 0.32s cubic-bezier(0.4, 0, 0.2, 1), opacity 0.2s ease;
+}
+
+/* 拖拽中禁用动画 */
+.sidebar.no-transition {
+  transition: none !important;
+}
+
+/* 折叠态 */
+.sidebar.collapsed {
+  border-right-color: transparent;
+}
+
+/* Sidebar 内容 */
+.nav-item {
+  padding: 8px 10px;
+  margin-bottom: 6px;
+  border-radius: 8px;
+  font-size: 14px;
+  color: #262626;
+  cursor: pointer;
+  user-select: none;
+}
+
+.nav-item:hover {
+  background: #f5f5f5;
+}
+
+/* ===== Resizer ===== */
+.resizer {
+  position: relative;
+  flex: 0 0 14px;
+  width: 14px;
+  align-self: stretch;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  user-select: none;
+}
+
+.resizer:not(.collapsed) {
+  cursor: col-resize;
+}
+
+.resizer.collapsed {
+  cursor: default;
+}
+
+/* 中间贯穿分割线 */
+.split {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 50%;
+  width: 1px;
+  transform: translateX(-50%);
+  background: #eaeaea;
+}
+
+/* ===== 折叠按钮（胶囊） ===== */
+.toggle-btn {
+  position: relative;
+  z-index: 1;
+
+  width: 26px;
+  height: 56px;
+  border-radius: 999px;
+
+  background: #ffffff;
+  border: 1px solid #f5f5f5;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  padding: 0;
+  cursor: pointer;
+
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+}
+
+.toggle-btn:hover {
+  background: #f5f5f5;
+}
+
+.toggle-btn:active {
+  transform: translateY(1px);
+}
+
+.toggle-btn:focus-visible {
+  outline: 2px solid rgba(0, 0, 0, 0.15);
+  outline-offset: 2px;
+}
+
+/* ===== 箭头 ===== */
+.icon {
+  color: #262626;
+  transition: transform 0.32s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.icon.collapsed {
+  transform: rotate(180deg);
+}

@@ -1,0 +1,47 @@
+
+.dashboard {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  background: #ffffff;
+  color: #0f172a;
+}
+
+.dashboard-shell {
+  display: flex;
+  flex: 1;
+  min-height: 0;
+}
+
+.dashboard-sidebar {
+  display: flex;      /* 关键 */
+  align-items: stretch;
+}
+
+.dashboard-shell > .app-container {
+  height: 100%;
+}
+
+.dashboard-content {
+  flex: 1;
+  padding: 24px 28px 32px;
+  overflow: auto;
+}
+
+.page-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  align-items: flex-start;
+  margin-bottom: 18px;
+}
+
+.page-header h1 {
+  margin: 6px 0 4px;
+  font-size: 26px;
+  letter-spacing: 0.2px;
+}
+
+
+
+
