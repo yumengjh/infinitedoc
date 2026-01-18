@@ -18,6 +18,8 @@ import { UpdateBlockDto } from './dto/update-block.dto';
 import { MoveBlockDto } from './dto/move-block.dto';
 import { BatchBlockDto } from './dto/batch-block.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { ActivitiesService } from '../activities/activities.service';
+import { BLOCK_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class BlocksService {
@@ -31,6 +33,7 @@ export class BlocksService {
     @InjectDataSource()
     private dataSource: DataSource,
     private documentsService: DocumentsService,
+    private activitiesService: ActivitiesService,
   ) {}
 
   /**
@@ -55,7 +58,7 @@ export class BlocksService {
     }
 
     // 使用事务创建块和初始版本
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const now = Date.now();
       const blockId = generateBlockId();
       const sortKey = createBlockDto.sortKey || this.generateSortKey(createBlockDto.parentId);
@@ -107,6 +110,9 @@ export class BlocksService {
         payload: createBlockDto.payload,
       };
     });
+    const doc = await this.documentRepository.findOne({ where: { docId: createBlockDto.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.CREATE, 'block', result.blockId, userId, { docId: createBlockDto.docId, type: createBlockDto.type });
+    return result;
   }
 
   /**
@@ -125,7 +131,7 @@ export class BlocksService {
     await this.documentsService.findOne(block.docId, userId);
 
     // 使用事务创建新版本
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const now = Date.now();
       const newVer = block.latestVer + 1;
       const hash = this.calculateHash(updateBlockDto.payload);
@@ -184,6 +190,9 @@ export class BlocksService {
         payload: updateBlockDto.payload,
       };
     });
+    const doc = await this.documentRepository.findOne({ where: { docId: block.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.UPDATE, 'block', blockId, userId, { docId: block.docId });
+    return result;
   }
 
   /**
@@ -292,7 +301,7 @@ export class BlocksService {
     }
 
     // 使用事务更新块位置
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const now = Date.now();
       const latestVersion = await manager.findOne(BlockVersion, {
         where: { blockId, ver: block.latestVer },
@@ -339,6 +348,9 @@ export class BlocksService {
         sortKey: moveBlockDto.sortKey,
       };
     });
+    const doc = await this.documentRepository.findOne({ where: { docId: block.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.MOVE, 'block', blockId, userId, { docId: block.docId, parentId: moveBlockDto.parentId });
+    return result;
   }
 
   /**
@@ -357,7 +369,7 @@ export class BlocksService {
     await this.documentsService.findOne(block.docId, userId);
 
     // 使用事务软删除块
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const now = Date.now();
 
       // 软删除块
@@ -371,6 +383,9 @@ export class BlocksService {
 
       return { message: '块已删除' };
     });
+    const doc = await this.documentRepository.findOne({ where: { docId: block.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.DELETE, 'block', blockId, userId, { docId: block.docId });
+    return result;
   }
 
   /**
@@ -449,7 +464,7 @@ export class BlocksService {
     await this.documentsService.findOne(batchBlockDto.docId, userId);
 
     // 使用事务执行批量操作
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const results: Array<{
         success: boolean;
         operation: string;
@@ -478,7 +493,7 @@ export class BlocksService {
           results.push({
             success: false,
             operation: operation.type,
-            error: error.message,
+            error: (error as Error).message,
           });
         }
       }
@@ -493,6 +508,9 @@ export class BlocksService {
         results,
       };
     });
+    const doc = await this.documentRepository.findOne({ where: { docId: batchBlockDto.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.BATCH, 'block', batchBlockDto.docId, userId, { count: batchBlockDto.operations.length });
+    return result;
   }
 
   /**

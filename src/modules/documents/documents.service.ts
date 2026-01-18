@@ -20,6 +20,8 @@ import { MoveDocumentDto } from './dto/move-document.dto';
 import { QueryDocumentsDto } from './dto/query-documents.dto';
 import { QueryRevisionsDto } from './dto/query-revisions.dto';
 import { SearchQueryDto } from './dto/search-query.dto';
+import { ActivitiesService } from '../activities/activities.service';
+import { DOC_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class DocumentsService {
@@ -37,6 +39,7 @@ export class DocumentsService {
     @InjectDataSource()
     private dataSource: DataSource,
     private workspacesService: WorkspacesService,
+    private activitiesService: ActivitiesService,
   ) {}
 
   /**
@@ -61,7 +64,7 @@ export class DocumentsService {
     }
 
     // 使用事务创建文档和根块
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const now = Date.now();
       const docId = generateDocId();
       const rootBlockId = generateBlockId();
@@ -155,6 +158,15 @@ export class DocumentsService {
       // 返回创建的文档信息
       return savedDocumentWithDetails;
     });
+    await this.activitiesService.record(
+      result.workspaceId,
+      DOC_ACTIONS.CREATE,
+      'document',
+      result.docId,
+      userId,
+      { title: result.title },
+    );
+    return result;
   }
 
   /**
@@ -325,7 +337,14 @@ export class DocumentsService {
 
     document.updatedBy = userId;
     await this.documentRepository.save(document);
-
+    await this.activitiesService.record(
+      document.workspaceId,
+      DOC_ACTIONS.UPDATE,
+      'document',
+      docId,
+      userId,
+      updateDocumentDto as object,
+    );
     return this.findOne(docId, userId);
   }
 
@@ -348,7 +367,13 @@ export class DocumentsService {
     document.publishedHead = document.head;
     document.updatedBy = userId;
     await this.documentRepository.save(document);
-
+    await this.activitiesService.record(
+      document.workspaceId,
+      DOC_ACTIONS.PUBLISH,
+      'document',
+      docId,
+      userId,
+    );
     return this.findOne(docId, userId);
   }
 
@@ -402,7 +427,14 @@ export class DocumentsService {
 
     document.updatedBy = userId;
     await this.documentRepository.save(document);
-
+    await this.activitiesService.record(
+      document.workspaceId,
+      DOC_ACTIONS.MOVE,
+      'document',
+      docId,
+      userId,
+      moveDocumentDto as object,
+    );
     return this.findOne(docId, userId);
   }
 
@@ -425,7 +457,13 @@ export class DocumentsService {
     document.status = 'deleted';
     document.updatedBy = userId;
     await this.documentRepository.save(document);
-
+    await this.activitiesService.record(
+      document.workspaceId,
+      DOC_ACTIONS.DELETE,
+      'document',
+      docId,
+      userId,
+    );
     return { message: '文档已删除' };
   }
 

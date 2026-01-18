@@ -17,6 +17,8 @@ import { UpdateWorkspaceDto } from './dto/update-workspace.dto';
 import { InviteMemberDto, WorkspaceRole } from './dto/invite-member.dto';
 import { UpdateMemberRoleDto } from './dto/update-member-role.dto';
 import { PaginationDto } from '../../common/dto/pagination.dto';
+import { ActivitiesService } from '../activities/activities.service';
+import { WORKSPACE_ACTIONS, MEMBER_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class WorkspacesService {
@@ -29,6 +31,7 @@ export class WorkspacesService {
     private userRepository: Repository<User>,
     @InjectDataSource()
     private dataSource: DataSource,
+    private activitiesService: ActivitiesService,
   ) {}
 
   /**
@@ -36,7 +39,7 @@ export class WorkspacesService {
    */
   async create(createWorkspaceDto: CreateWorkspaceDto, userId: string) {
     // 使用事务确保数据一致性
-    return await this.dataSource.transaction(async (manager) => {
+    const result = await this.dataSource.transaction(async (manager) => {
       const workspace = manager.create(Workspace, {
         workspaceId: generateWorkspaceId(),
         name: createWorkspaceDto.name,
@@ -74,6 +77,15 @@ export class WorkspacesService {
         userRole: WorkspaceRole.OWNER,
       };
     });
+    await this.activitiesService.record(
+      result.workspaceId,
+      WORKSPACE_ACTIONS.CREATE,
+      'workspace',
+      result.workspaceId,
+      userId,
+      { name: result.name },
+    );
+    return result;
   }
 
   /**
@@ -199,7 +211,14 @@ export class WorkspacesService {
     }
 
     await this.workspaceRepository.save(workspace);
-
+    await this.activitiesService.record(
+      workspaceId,
+      WORKSPACE_ACTIONS.UPDATE,
+      'workspace',
+      workspaceId,
+      userId,
+      updateWorkspaceDto as object,
+    );
     return this.findOne(workspaceId, userId);
   }
 
@@ -223,7 +242,13 @@ export class WorkspacesService {
     // 软删除：将状态设置为 archived
     workspace.status = 'archived';
     await this.workspaceRepository.save(workspace);
-
+    await this.activitiesService.record(
+      workspaceId,
+      WORKSPACE_ACTIONS.DELETE,
+      'workspace',
+      workspaceId,
+      userId,
+    );
     return { message: '工作空间已删除' };
   }
 
@@ -289,7 +314,14 @@ export class WorkspacesService {
     });
 
     await this.workspaceMemberRepository.save(member);
-
+    await this.activitiesService.record(
+      workspaceId,
+      MEMBER_ACTIONS.INVITE,
+      'member',
+      user.userId,
+      userId,
+      { email: inviteMemberDto.email, role: inviteMemberDto.role },
+    );
     return this.getMemberList(workspaceId, userId);
   }
 
@@ -401,7 +433,14 @@ export class WorkspacesService {
     // 更新角色
     member.role = updateMemberRoleDto.role;
     await this.workspaceMemberRepository.save(member);
-
+    await this.activitiesService.record(
+      workspaceId,
+      MEMBER_ACTIONS.ROLE,
+      'member',
+      targetUserId,
+      userId,
+      { role: updateMemberRoleDto.role },
+    );
     return this.getMemberList(workspaceId, userId);
   }
 
@@ -442,7 +481,13 @@ export class WorkspacesService {
       workspaceId,
       userId: targetUserId,
     });
-
+    await this.activitiesService.record(
+      workspaceId,
+      MEMBER_ACTIONS.REMOVE,
+      'member',
+      targetUserId,
+      userId,
+    );
     return { message: '成员已移除' };
   }
 

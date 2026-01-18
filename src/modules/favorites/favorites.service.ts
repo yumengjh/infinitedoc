@@ -8,8 +8,10 @@ import { Repository } from 'typeorm';
 import { Favorite } from '../../entities/favorite.entity';
 import { Document } from '../../entities/document.entity';
 import { DocumentsService } from '../documents/documents.service';
+import { ActivitiesService } from '../activities/activities.service';
 import { CreateFavoriteDto } from './dto/create-favorite.dto';
 import { QueryFavoritesDto } from './dto/query-favorites.dto';
+import { FAVORITE_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class FavoritesService {
@@ -19,6 +21,7 @@ export class FavoritesService {
     @InjectRepository(Document)
     private documentRepository: Repository<Document>,
     private documentsService: DocumentsService,
+    private activitiesService: ActivitiesService,
   ) {}
 
   /** 收藏文档 */
@@ -40,6 +43,7 @@ export class FavoritesService {
     if (doc) {
       doc.favoriteCount = (doc.favoriteCount || 0) + 1;
       await this.documentRepository.save(doc);
+      await this.activitiesService.record(doc.workspaceId, FAVORITE_ACTIONS.CREATE, 'favorite', dto.docId, userId, { docId: dto.docId });
     }
 
     return { message: '收藏成功', docId: dto.docId };
@@ -58,6 +62,7 @@ export class FavoritesService {
     if (doc) {
       doc.favoriteCount = Math.max(0, (doc.favoriteCount || 0) - 1);
       await this.documentRepository.save(doc);
+      await this.activitiesService.record(doc.workspaceId, FAVORITE_ACTIONS.REMOVE, 'favorite', docId, userId, { docId });
     }
 
     return { message: '已取消收藏', docId };

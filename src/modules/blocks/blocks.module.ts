@@ -7,11 +7,13 @@ import { BlockVersion } from '../../entities/block-version.entity';
 import { Document } from '../../entities/document.entity';
 import { DocRevision } from '../../entities/doc-revision.entity';
 import { DocumentsModule } from '../documents/documents.module';
+import { ActivitiesModule } from '../activities/activities.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Block, BlockVersion, Document, DocRevision]),
     DocumentsModule,
+    ActivitiesModule,
   ],
   controllers: [BlocksController],
   providers: [BlocksService],

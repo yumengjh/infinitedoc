@@ -5,7 +5,7 @@
 ## 📊 总体完成度
 
 ```
-已完成: ███████████████████░ 90%
+已完成: ████████████████████ 95%
 ```
 
 - ✅ 基础架构：100%
@@ -20,7 +20,8 @@
 - ✅ 收藏模块：100%
 - ✅ 评论模块：100%
 - ✅ 搜索模块：100%
-- ❌ 业务模块：95%（工作空间、文档、块、版本控制、资产、标签、收藏、评论、搜索已完成）
+- ✅ 活动日志模块：100%
+- ❌ 业务模块：98%（工作空间、文档、块、版本控制、资产、标签、收藏、评论、搜索、活动日志已完成）
 
 ---
 
@@ -143,6 +144,7 @@
 - ✅ 收藏模块集成
 - ✅ 评论模块集成
 - ✅ 搜索模块集成
+- ✅ 活动日志模块集成
 
 ---
 
@@ -373,11 +375,26 @@
 
 **相关文件：** `search.module.ts`、`search.service.ts`、`search.controller.ts`、`dto/search-query.dto.ts`、`dto/advanced-search.dto.ts`
 
+### 14. 活动日志模块 (activities) ✅
+
+**路径：** `src/modules/activities/`
+
+**已实现的接口：**
+- ✅ `GET /api/v1/activities` - 获取活动日志（workspaceId 必填，userId、action、entityType、startDate、endDate、分页）
+
+**记录埋点（Service 层）：**
+- 工作空间：create、update、delete；成员：invite、role、remove
+- 文档：create、update、publish、move、delete
+- 块：create、updateContent、move、remove、batch
+- 收藏：create、remove
+- 评论：create、delete
+- 标签：create、update、delete
+
+**相关文件：** `activities.module.ts`、`activities.service.ts`、`activities.controller.ts`、`constants/activity-actions.ts`、`dto/query-activities.dto.ts`
+
 ### 6. 其他功能模块
 
-**活动日志模块 (activities)**
-- ❌ 记录活动日志
-- ❌ 获取活动日志列表
+（暂无）
 
 ---
 
@@ -406,7 +423,8 @@ app/
 │   │   ├── tags/            ✅ 标签模块
 │   │   ├── favorites/       ✅ 收藏模块
 │   │   ├── comments/        ✅ 评论模块
-│   │   └── search/          ✅ 搜索模块
+│   │   ├── search/          ✅ 搜索模块
+│   │   └── activities/      ✅ 活动日志模块
 │   ├── app.module.ts        ✅ 主模块
 │   └── main.ts              ✅ 应用入口
 ├── docs/
@@ -461,7 +479,7 @@ app/
 9. ✅ **搜索模块** - 全文搜索（已完成）
 
 ### 优先级 P3（优化）
-10. **活动日志模块** - 审计功能
+10. ✅ **活动日志模块** - 审计功能（已完成）
 11. **性能优化** - 缓存、限流等
 12. **测试** - 单元测试、集成测试
 
@@ -497,6 +515,7 @@ app/
 - [x] 2026-01-17 - 完成资产模块（P1）
 - [x] 2026-01-17 - 完成标签、收藏、评论模块（P2）
 - [x] 2026-01-17 - 完成搜索模块（P2）
+- [x] 2026-01-17 - 完成活动日志模块（P3）
 - [ ] 待定 - 完成核心功能（P0）
 - [ ] 待定 - 完成增强功能（P1-P2）
 - [ ] 待定 - 项目上线准备

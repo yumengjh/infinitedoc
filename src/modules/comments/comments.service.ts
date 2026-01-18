@@ -7,18 +7,24 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from '../../entities/comment.entity';
+import { Document } from '../../entities/document.entity';
 import { DocumentsService } from '../documents/documents.service';
+import { ActivitiesService } from '../activities/activities.service';
 import { generateCommentId } from '../../common/utils/id-generator.util';
 import { CreateCommentDto } from './dto/create-comment.dto';
 import { UpdateCommentDto } from './dto/update-comment.dto';
 import { QueryCommentsDto } from './dto/query-comments.dto';
+import { COMMENT_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class CommentsService {
   constructor(
     @InjectRepository(Comment)
     private commentRepository: Repository<Comment>,
+    @InjectRepository(Document)
+    private documentRepository: Repository<Document>,
     private documentsService: DocumentsService,
+    private activitiesService: ActivitiesService,
   ) {}
 
   async create(dto: CreateCommentDto, userId: string) {
@@ -42,7 +48,10 @@ export class CommentsService {
       parentCommentId: dto.parentCommentId || undefined,
       isDeleted: false,
     } as Partial<Comment>);
-    return await this.commentRepository.save(comment);
+    const saved = await this.commentRepository.save(comment);
+    const doc = await this.documentRepository.findOne({ where: { docId: dto.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, COMMENT_ACTIONS.CREATE, 'comment', saved.commentId, userId, { docId: dto.docId, blockId: dto.blockId });
+    return saved;
   }
 
   async findAll(queryDto: QueryCommentsDto, userId: string) {
@@ -87,6 +96,8 @@ export class CommentsService {
 
     c.isDeleted = true;
     await this.commentRepository.save(c);
+    const doc = await this.documentRepository.findOne({ where: { docId: c.docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, COMMENT_ACTIONS.DELETE, 'comment', commentId, userId, { docId: c.docId });
     return { message: '评论已删除' };
   }
 }

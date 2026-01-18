@@ -8,11 +8,13 @@ import { BlockVersion } from '../../entities/block-version.entity';
 import { DocRevision } from '../../entities/doc-revision.entity';
 import { DocSnapshot } from '../../entities/doc-snapshot.entity';
 import { WorkspacesModule } from '../workspaces/workspaces.module';
+import { ActivitiesModule } from '../activities/activities.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Document, Block, BlockVersion, DocRevision, DocSnapshot]),
     WorkspacesModule,
+    ActivitiesModule,
   ],
   controllers: [DocumentsController],
   providers: [DocumentsService],

@@ -16,6 +16,7 @@ import { TagsModule } from './modules/tags/tags.module';
 import { FavoritesModule } from './modules/favorites/favorites.module';
 import { CommentsModule } from './modules/comments/comments.module';
 import { SearchModule } from './modules/search/search.module';
+import { ActivitiesModule } from './modules/activities/activities.module';
 
 // 导入所有实体
 import { User } from './entities/user.entity';
@@ -94,6 +95,7 @@ import { SecurityLog } from './entities/security-log.entity';
     FavoritesModule,
     CommentsModule,
     SearchModule,
+    ActivitiesModule,
   ],
   controllers: [AppController],
   providers: [

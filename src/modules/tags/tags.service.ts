@@ -9,10 +9,12 @@ import { Repository } from 'typeorm';
 import { Tag } from '../../entities/tag.entity';
 import { Document } from '../../entities/document.entity';
 import { WorkspacesService } from '../workspaces/workspaces.service';
+import { ActivitiesService } from '../activities/activities.service';
 import { generateTagId } from '../../common/utils/id-generator.util';
 import { CreateTagDto } from './dto/create-tag.dto';
 import { UpdateTagDto } from './dto/update-tag.dto';
 import { QueryTagsDto } from './dto/query-tags.dto';
+import { TAG_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class TagsService {
@@ -22,6 +24,7 @@ export class TagsService {
     @InjectRepository(Document)
     private documentRepository: Repository<Document>,
     private workspacesService: WorkspacesService,
+    private activitiesService: ActivitiesService,
   ) {}
 
   async create(createTagDto: CreateTagDto, userId: string) {
@@ -42,7 +45,9 @@ export class TagsService {
       createdBy: userId,
       usageCount: 0,
     });
-    return await this.tagRepository.save(tag);
+    const saved = await this.tagRepository.save(tag);
+    await this.activitiesService.record(createTagDto.workspaceId, TAG_ACTIONS.CREATE, 'tag', saved.tagId, userId, { name: saved.name });
+    return saved;
   }
 
   async findAll(queryDto: QueryTagsDto, userId: string) {
@@ -101,7 +106,9 @@ export class TagsService {
       (tag as { color: string | null }).color = v || null;
     }
 
-    return await this.tagRepository.save(tag);
+    const saved = await this.tagRepository.save(tag);
+    await this.activitiesService.record(tag.workspaceId, TAG_ACTIONS.UPDATE, 'tag', tagId, userId, updateTagDto as object);
+    return saved;
   }
 
   async remove(tagId: string, userId: string) {
@@ -114,6 +121,7 @@ export class TagsService {
     );
 
     await this.tagRepository.remove(tag);
+    await this.activitiesService.record(tag.workspaceId, TAG_ACTIONS.DELETE, 'tag', tagId, userId, { name: tag.name });
     return { message: '标签已删除' };
   }
 }
