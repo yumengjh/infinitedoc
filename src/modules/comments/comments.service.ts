@@ -8,6 +8,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Comment } from '../../entities/comment.entity';
 import { Document } from '../../entities/document.entity';
+import { Block } from '../../entities/block.entity';
 import { DocumentsService } from '../documents/documents.service';
 import { ActivitiesService } from '../activities/activities.service';
 import { generateCommentId } from '../../common/utils/id-generator.util';
@@ -23,12 +24,30 @@ export class CommentsService {
     private commentRepository: Repository<Comment>,
     @InjectRepository(Document)
     private documentRepository: Repository<Document>,
+    @InjectRepository(Block)
+    private blockRepository: Repository<Block>,
     private documentsService: DocumentsService,
     private activitiesService: ActivitiesService,
   ) {}
 
   async create(dto: CreateCommentDto, userId: string) {
     await this.documentsService.findOne(dto.docId, userId);
+
+    // 如果提供了 blockId，验证块是否存在且属于该文档
+    if (dto.blockId) {
+      const block = await this.blockRepository.findOne({
+        where: { blockId: dto.blockId },
+      });
+      if (!block) {
+        throw new NotFoundException('块不存在');
+      }
+      if (block.docId !== dto.docId) {
+        throw new BadRequestException('块不属于该文档');
+      }
+      if (block.isDeleted) {
+        throw new BadRequestException('块已被删除，无法添加评论');
+      }
+    }
 
     if (dto.parentCommentId) {
       const parent = await this.commentRepository.findOne({
