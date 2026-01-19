@@ -61,10 +61,20 @@ export class AssetsService {
     const storagePath = join('workspaces', workspaceId, filename);
     const fullPath = join(process.cwd(), uploadDir, storagePath);
 
-    await mkdir(join(process.cwd(), uploadDir, 'workspaces', workspaceId), {
+    // 创建目录（如果不存在）
+    const workspaceDir = join(process.cwd(), uploadDir, 'workspaces', workspaceId);
+    await mkdir(workspaceDir, {
       recursive: true,
     });
-    await writeFile(fullPath, file.buffer);
+
+    // 保存文件
+    try {
+      await writeFile(fullPath, file.buffer);
+      console.log(`文件已保存到: ${fullPath}`);
+    } catch (error) {
+      console.error(`文件保存失败: ${fullPath}`, error);
+      throw new BadRequestException(`文件保存失败: ${error.message}`);
+    }
 
     const apiPrefix = this.getApiPrefix();
     const url = `/${apiPrefix}/assets/${assetId}/file`;
