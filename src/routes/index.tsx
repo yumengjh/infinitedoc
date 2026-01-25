@@ -5,6 +5,7 @@ const AboutPage = lazy(() => import("../pages/About"));
 const ToolPage = lazy(() => import("../pages/Tool"));
 const HistoryPage = lazy(() => import("../pages/History"));
 const DocumentPage = lazy(() => import("../pages/Document"));
+const LoginPage = lazy(() => import("../pages/Login"));
 
 export type AppRoute = {
   key: string;
@@ -41,6 +42,13 @@ export const appRoutes: AppRoute[] = [
     label: "历史版本",
     path: "/history",
     element: <HistoryPage />,
+    inSidebar: false,
+  },
+  {
+    key: "login",
+    label: "登录",
+    path: "/login",
+    element: <LoginPage />,
     inSidebar: false,
   },
   {
