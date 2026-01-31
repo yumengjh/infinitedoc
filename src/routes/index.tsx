@@ -6,6 +6,7 @@ const ToolPage = lazy(() => import("../pages/Tool"));
 const HistoryPage = lazy(() => import("../pages/History"));
 const DocumentPage = lazy(() => import("../pages/Document"));
 const LoginPage = lazy(() => import("../pages/Login"));
+const ApiTestPage = lazy(() => import("../pages/ApiTest"));
 
 export type AppRoute = {
   key: string;
@@ -43,6 +44,13 @@ export const appRoutes: AppRoute[] = [
     path: "/history",
     element: <HistoryPage />,
     inSidebar: false,
+  },
+  {
+    key: "api-test",
+    label: "接口测试",
+    path: "/api-test",
+    element: <ApiTestPage />,
+    inSidebar: true,
   },
   {
     key: "login",
