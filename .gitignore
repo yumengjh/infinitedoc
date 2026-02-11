@@ -20,3 +20,7 @@ uploads/
 cache/
 
 dist-bundle/
+
+# AI 对话
+
+FIX_ERROR.md

@@ -63,6 +63,7 @@ export default defineConfig({
         {
           text: '系统功能',
           items: [
+            { text: '设置 (Settings)', link: '/api/settings' },
             { text: '活动日志 (Activities)', link: '/api/activities' },
             { text: '资产 (Assets)', link: '/api/assets' },
             { text: '安全 (Security)', link: '/api/security' }

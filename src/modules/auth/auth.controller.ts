@@ -2,18 +2,27 @@ import {
   Controller,
   Post,
   Get,
+  Patch,
   Body,
+  Param,
   Req,
   UseGuards,
   HttpCode,
   HttpStatus,
 } from '@nestjs/common';
 import type { Request } from 'express';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiParam,
+} from '@nestjs/swagger';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { RefreshTokenDto } from './dto/refresh-token.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
 import { CurrentUser } from '../../common/decorators/current-user.decorator';
 import { Public } from '../../common/decorators/public.decorator';
@@ -76,5 +85,31 @@ export class AuthController {
   @ApiResponse({ status: 200, description: '获取成功' })
   async getCurrentUser(@CurrentUser() user: any) {
     return this.authService.getCurrentUser(user.userId);
+  }
+
+  @Patch('me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '更新当前用户信息' })
+  @ApiResponse({ status: 200, description: '更新成功' })
+  @ApiResponse({ status: 400, description: '请求参数错误' })
+  @ApiResponse({ status: 401, description: '未认证或令牌无效' })
+  async updateCurrentUser(
+    @CurrentUser() user: any,
+    @Body() updateMeDto: UpdateMeDto,
+  ) {
+    return this.authService.updateCurrentUser(user.userId, updateMeDto);
+  }
+
+  @Get('users/:userId')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: '根据 userId 获取用户信息' })
+  @ApiParam({ name: 'userId', description: '用户ID' })
+  @ApiResponse({ status: 200, description: '获取成功' })
+  @ApiResponse({ status: 401, description: '未认证' })
+  @ApiResponse({ status: 404, description: '用户不存在' })
+  async getUserProfileByUserId(@Param('userId') userId: string) {
+    return this.authService.getUserProfileByUserId(userId);
   }
 }

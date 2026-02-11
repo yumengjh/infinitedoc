@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -14,6 +15,7 @@ import { generateUserId, generateSessionId } from '../../common/utils/id-generat
 import { SecurityService } from '../security/security.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateMeDto } from './dto/update-me.dto';
 
 export interface RequestContext {
   ip?: string;
@@ -233,6 +235,89 @@ export class AuthService {
     }
 
     return user;
+  }
+
+  async getUserProfileByUserId(userId: string) {
+    const user = await this.userRepository.findOne({
+      where: { userId },
+      select: [
+        'username',
+        'displayName',
+        'email',
+        'avatar',
+        'bio',
+        'status',
+        'updatedAt',
+      ],
+    });
+
+    if (!user) {
+      throw new NotFoundException('用户不存在');
+    }
+
+    return {
+      username: user.username,
+      displayName: user.displayName,
+      email: user.email,
+      avatar: user.avatar,
+      bio: user.bio,
+      status: user.status,
+      updatedAt: user.updatedAt,
+    };
+  }
+
+  async updateCurrentUser(userId: string, updateMeDto: UpdateMeDto) {
+    const user = await this.userRepository.findOne({
+      where: { userId },
+    });
+
+    if (!user) {
+      throw new UnauthorizedException('用户不存在');
+    }
+
+    let changed = false;
+
+    if (
+      updateMeDto.displayName !== undefined &&
+      updateMeDto.displayName !== null
+    ) {
+      user.displayName = updateMeDto.displayName;
+      changed = true;
+    }
+
+    if (updateMeDto.avatar !== undefined && updateMeDto.avatar !== null) {
+      user.avatar = updateMeDto.avatar;
+      changed = true;
+    }
+
+    if (updateMeDto.bio !== undefined && updateMeDto.bio !== null) {
+      user.bio = updateMeDto.bio;
+      changed = true;
+    }
+
+    if (changed) {
+      await this.userRepository.save(user);
+    }
+
+    const currentUser = await this.userRepository.findOne({
+      where: { userId },
+      select: [
+        'userId',
+        'username',
+        'email',
+        'displayName',
+        'avatar',
+        'bio',
+        'createdAt',
+        'updatedAt',
+      ],
+    });
+
+    if (!currentUser) {
+      throw new UnauthorizedException('用户不存在');
+    }
+
+    return currentUser;
   }
 
   private async generateTokens(userId: string) {

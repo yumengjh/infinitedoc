@@ -61,6 +61,8 @@ Authorization: Bearer <your-access-token>
 | POST | `/auth/refresh` | 刷新令牌 | 否 |
 | POST | `/auth/logout` | 用户登出 | 是 |
 | GET | `/auth/me` | 获取当前用户 | 是 |
+| PATCH | `/auth/me` | 更新当前用户信息 | 是 |
+| GET | `/auth/users/:userId` | 根据 userId 获取用户信息 | 是 |
 
 **详细文档：** [认证 API](./auth.md)
 
@@ -173,7 +175,22 @@ Authorization: Bearer <your-access-token>
 
 **详细文档：** [搜索 API](./search.md)
 
-### 9. 活动日志 (Activities)
+### 9. 设置 (Settings)
+
+阅读/编辑体验设置与工作空间覆盖配置。
+
+| 方法 | 路径 | 说明 | 认证 |
+|------|------|------|------|
+| GET | `/settings/me` | 获取当前用户设置（含默认值） | 是 |
+| PATCH | `/settings/me` | 更新当前用户设置 | 是 |
+| GET | `/settings/effective` | 获取生效设置（可带 workspaceId） | 是 |
+| GET | `/workspaces/:workspaceId/settings` | 获取工作空间覆盖设置 | 是 |
+| PATCH | `/workspaces/:workspaceId/settings` | 更新工作空间覆盖设置 | 是 |
+| DELETE | `/workspaces/:workspaceId/settings` | 清空工作空间覆盖设置 | 是 |
+
+**详细文档：** [设置 API](./settings.md)
+
+### 10. 活动日志 (Activities)
 
 用户活动日志查询功能。
 
@@ -183,7 +200,7 @@ Authorization: Bearer <your-access-token>
 
 **详细文档：** [活动日志 API](./activities.md)
 
-### 10. 资产 (Assets)
+### 11. 资产 (Assets)
 
 文件上传和管理功能。
 
@@ -196,7 +213,7 @@ Authorization: Bearer <your-access-token>
 
 **详细文档：** [资产 API](./assets.md)
 
-### 11. 安全 (Security)
+### 12. 安全 (Security)
 
 安全日志和审计日志查询功能。
 
@@ -239,4 +256,3 @@ curl -X POST http://localhost:5200/api/v1/auth/login \
 curl -X GET http://localhost:5200/api/v1/auth/me \
   -H "Authorization: Bearer <your-access-token>"
 ```
-

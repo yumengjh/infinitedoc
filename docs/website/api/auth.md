@@ -11,6 +11,8 @@
 | POST | `/auth/refresh` | 刷新令牌 | 否 |
 | POST | `/auth/logout` | 用户登出 | 是 |
 | GET | `/auth/me` | 获取当前用户 | 是 |
+| PATCH | `/auth/me` | 更新当前用户信息 | 是 |
+| GET | `/auth/users/:userId` | 根据 userId 获取用户信息 | 是 |
 
 ## 用户注册
 
@@ -169,6 +171,94 @@ Authorization: Bearer <your-access-token>
 - `200 OK` - 获取成功
 - `401 Unauthorized` - Token 无效或已过期
 
+## 更新当前用户信息
+
+**接口：** `PATCH /api/v1/auth/me`
+
+**说明：** 更新当前登录用户资料，支持部分更新。
+
+**返回字段：** `displayName`、`avatar`、`bio`
+
+**返回体说明：** 返回当前用户信息，但不包含 `settings` 字段，包含 `updatedAt`。
+
+**请求头：**
+```
+Authorization: Bearer <your-access-token>
+```
+
+**请求体（可选字段）：**
+```json
+{
+  "displayName": "John Doe",
+  "avatar": "https://example.com/avatar.jpg",
+  "bio": "这是我的简介"
+}
+```
+
+> 说明：传 `null` 会被忽略，不会清空字段。
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "data": {
+    "userId": "u_1705123456789_abc123",
+    "username": "john_doe",
+    "email": "john@example.com",
+    "displayName": "John Doe",
+    "avatar": "https://example.com/avatar.jpg",
+    "bio": "这是我的简介",
+    "createdAt": "2024-01-15T10:30:00.000Z",
+    "updatedAt": "2026-02-11T14:20:00.000Z"
+  }
+}
+```
+
+**状态码：**
+- `200 OK` - 更新成功
+- `400 Bad Request` - 请求参数错误
+- `401 Unauthorized` - Token 无效或已过期
+
+## 根据 userId 获取用户信息
+
+**接口：** `GET /api/v1/auth/users/:userId`
+
+**说明：** 根据用户 ID 查询用户基础信息（需鉴权）。
+
+**返回字段：** `username`、`displayName`、`email`、`avatar`、`bio`、`status`、`updatedAt`
+
+**请求头：**
+```
+Authorization: Bearer <your-access-token>
+```
+
+**路径参数：**
+
+| 参数 | 类型 | 必填 | 说明 |
+|------|------|------|------|
+| `userId` | string | ✅ | 用户 ID |
+
+**响应示例：**
+```json
+{
+  "success": true,
+  "data": {
+    "username": "john_doe",
+    "displayName": "John Doe",
+    "email": "john@example.com",
+    "avatar": "https://example.com/avatar.jpg",
+    "bio": "这是我的简介",
+    "status": "active",
+    "updatedAt": "2026-02-11T03:30:00.000Z"
+  }
+}
+```
+
+**状态码：**
+- `200 OK` - 获取成功
+- `401 Unauthorized` - Token 无效或已过期
+- `404 Not Found` - 用户不存在
+
 ## 用户登出
 
 **接口：** `POST /api/v1/auth/logout`
@@ -311,4 +401,3 @@ curl -X POST http://localhost:5200/api/v1/auth/login \
 curl -X GET http://localhost:5200/api/v1/auth/me \
   -H "Authorization: Bearer <your-access-token>"
 ```
-

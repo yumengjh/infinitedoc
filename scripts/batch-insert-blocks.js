@@ -16,12 +16,12 @@
 // ============================================
 
 // 鉴权信息
-const ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1XzE3Njg3MjA5NDM1NjdfYjc0OTJmZGYiLCJpYXQiOjE3Njg4MDc1MzQsImV4cCI6MTc2ODg5MzkzNH0.eOdU7-VVuSrkLNTbIGSNBVpYNkrFtOQ5CKY7wwKT-XA'; // 替换为实际的访问令牌
+const ACCESS_TOKEN = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiJ1XzE3Njg3MjA5NDM1NjdfYjc0OTJmZGYiLCJpYXQiOjE3NzA2ODIwNDIsImV4cCI6MTc3MDc2ODQ0Mn0.XatpWUxpqR7ZVjqkCH9tkYR4YFsQWnpY_iZwkPAbcqY'; // 替换为实际的访问令牌
 const API_BASE_URL = 'http://localhost:5200/api/v1'; // API 基础地址
 
 // 文档信息
-const DOC_ID = 'doc_1768816180966_5c11601b'; // 要插入块的文档ID
-const WORKSPACE_ID = 'ws_1768727797090_8cd3e252'; // 工作空间ID（用于验证）
+const DOC_ID = 'doc_1770694626249_2a0cc4bb'; // 要插入块的文档ID
+const WORKSPACE_ID = 'ws_1769825305752_c2175a15'; // 工作空间ID（用于验证）
 
 // 插入配置
 const BLOCK_COUNT = 2000; // 要插入的块数量
