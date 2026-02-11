@@ -6,6 +6,7 @@ import {
   HttpStatus,
 } from '@nestjs/common';
 import { Response } from 'express';
+import { QueryFailedError } from 'typeorm';
 import { ErrorResponse } from '../dto/response.dto';
 
 @Catch()
@@ -19,6 +20,24 @@ export class HttpExceptionFilter implements ExceptionFilter {
     let status = HttpStatus.INTERNAL_SERVER_ERROR;
     let message = 'Internal server error';
     let code = 'INTERNAL_ERROR';
+    let details: Record<string, any> | undefined;
+
+    // TypeORM/PG 数据库错误映射
+    const driverError = (exception as any)?.driverError;
+    const pgCode = driverError?.code as string | undefined;
+    if (exception instanceof QueryFailedError || driverError) {
+      if (pgCode === '23505') {
+        status = HttpStatus.CONFLICT;
+        code = 'DUPLICATE_KEY';
+        message = driverError?.constraint
+          ? `数据写入冲突（唯一约束：${driverError.constraint}）`
+          : '数据写入冲突（唯一约束冲突）';
+        details = {
+          dbCode: pgCode,
+          constraint: driverError?.constraint,
+        };
+      }
+    }
 
     if (exception instanceof HttpException) {
       status = exception.getStatus();
@@ -26,8 +45,11 @@ export class HttpExceptionFilter implements ExceptionFilter {
 
       if (typeof exceptionResponse === 'object') {
         const errorObj = exceptionResponse as any;
-        message = errorObj.message || message;
+        message = Array.isArray(errorObj.message)
+          ? errorObj.message.join(', ')
+          : (errorObj.message ?? message);
         code = errorObj.code || code || exception.name;
+        details = errorObj.details || details;
       } else {
         message = exceptionResponse as string;
         code = exception.name;
@@ -57,6 +79,7 @@ export class HttpExceptionFilter implements ExceptionFilter {
       error: {
         code,
         message,
+        ...(details && { details }),
         ...(!isProd && {
           stack: exception instanceof Error ? exception.stack : undefined,
         }),

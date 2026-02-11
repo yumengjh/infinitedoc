@@ -5,6 +5,7 @@ import {
   BadRequestException,
   Inject,
   forwardRef,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectDataSource } from '@nestjs/typeorm';
@@ -27,6 +28,8 @@ import { BLOCK_ACTIONS } from '../activities/constants/activity-actions';
 
 @Injectable()
 export class BlocksService {
+  private readonly logger = new Logger(BlocksService.name);
+
   constructor(
     @InjectRepository(Block)
     private blockRepository: Repository<Block>,
@@ -145,10 +148,6 @@ export class BlocksService {
    * 更新块内容
    */
   async updateContent(blockId: string, updateBlockDto: UpdateBlockDto, userId: string) {
-    // 调试信息
-    console.log('updateContent - blockId:', blockId);
-    console.log('updateContent - blockId type:', typeof blockId);
-    
     const block = await this.blockRepository.findOne({
       where: { blockId, isDeleted: false },
     });
@@ -162,104 +161,147 @@ export class BlocksService {
       if (deletedBlock) {
         throw new NotFoundException(`块已被删除 (blockId: ${blockId})`);
       }
-      
-      // 检查数据库中是否存在该 blockId
-      const allBlocks = await this.blockRepository.find({
-        where: {},
-        take: 5,
-      });
-      console.log('Sample blocks in DB:', allBlocks.map(b => b.blockId));
-      
+
       throw new NotFoundException(`块不存在 (blockId: ${blockId})`);
     }
 
     // 检查文档权限
     await this.documentsService.findOne(block.docId, userId);
+    const docId = block.docId;
 
-    // 使用事务创建新版本
-    const result = await this.dataSource.transaction(async (manager) => {
-      const now = Date.now();
-      const newVer = block.latestVer + 1;
-      const hash = this.calculateHash(updateBlockDto.payload);
+    // 使用「行级锁 + 重试」保证同一 block 高频并发更新的稳定性
+    const result = await this.executeWithRetry(
+      async () =>
+        this.dataSource.transaction(async (manager) => {
+          const now = Date.now();
+          const hash = this.calculateHash(updateBlockDto.payload);
 
-      // 检查内容是否真的改变了
-      const latestVersion = await manager.findOne(BlockVersion, {
-        where: { blockId, ver: block.latestVer },
-      });
+          // 锁定当前 block 行，串行化同一 block 的并发写入
+          const lockedBlock = await manager
+            .getRepository(Block)
+            .createQueryBuilder('b')
+            .setLock('pessimistic_write')
+            .where('b.blockId = :blockId', { blockId })
+            .andWhere('b.isDeleted = :isDeleted', { isDeleted: false })
+            .getOne();
 
-      if (latestVersion && latestVersion.hash === hash) {
-        // 内容没有变化，返回当前版本
-        return {
-          blockId,
-          version: block.latestVer,
-          payload: latestVersion.payload,
-        };
-      }
+          if (!lockedBlock) {
+            const deletedBlock = await manager.findOne(Block, {
+              where: { blockId },
+            });
+            if (deletedBlock) {
+              throw new NotFoundException(`块已被删除 (blockId: ${blockId})`);
+            }
+            throw new NotFoundException(`块不存在 (blockId: ${blockId})`);
+          }
 
-      // 获取最新版本的结构信息（必须存在）
-      const latestVersionInfo = await manager.findOne(BlockVersion, {
-        where: { blockId, ver: block.latestVer },
-      });
+          // 基于锁内最新版本读取，避免并发请求使用同一个 latestVer
+          const latestVersionInfo = await manager.findOne(BlockVersion, {
+            where: { blockId, ver: lockedBlock.latestVer },
+          });
 
-      if (!latestVersionInfo) {
-        throw new NotFoundException('块的最新版本不存在');
-      }
+          if (!latestVersionInfo) {
+            throw new NotFoundException('块的最新版本不存在');
+          }
 
-      // 创建新版本，保留原有的位置信息（sortKey、parentId 等）
-      // 重要：更新块内容时，sortKey 必须保持不变，否则块的位置会改变
-      // 确保 sortKey 不为空，如果为空则使用默认值
-      const preservedSortKey = (latestVersionInfo.sortKey && latestVersionInfo.sortKey.trim() !== '') 
-        ? latestVersionInfo.sortKey 
-        : '500000';
-        
-      const blockVersion = manager.create(BlockVersion, {
-        versionId: generateVersionId(blockId, newVer),
-        docId: block.docId,
-        blockId,
-        ver: newVer,
-        createdAt: now,
-        createdBy: userId,
-        parentId: latestVersionInfo.parentId, // 保留父块ID
-        sortKey: preservedSortKey, // 保留排序键，确保位置不变
-        indent: latestVersionInfo.indent, // 保留缩进
-        collapsed: latestVersionInfo.collapsed, // 保留折叠状态
-        payload: updateBlockDto.payload,
-        hash,
-        plainText: updateBlockDto.plainText || this.extractPlainText(updateBlockDto.payload),
-        refs: [],
-      });
+          // 内容无变化：直接返回当前版本
+          if (latestVersionInfo.hash === hash) {
+            return {
+              blockId,
+              version: lockedBlock.latestVer,
+              payload: latestVersionInfo.payload,
+            };
+          }
 
-      await manager.save(BlockVersion, blockVersion);
+          const newVer = lockedBlock.latestVer + 1;
+          const preservedSortKey =
+            latestVersionInfo.sortKey && latestVersionInfo.sortKey.trim() !== ''
+              ? latestVersionInfo.sortKey
+              : '500000';
 
-      await manager.save(BlockVersion, blockVersion);
+          const blockVersion = manager.create(BlockVersion, {
+            versionId: generateVersionId(blockId, newVer),
+            docId: lockedBlock.docId,
+            blockId,
+            ver: newVer,
+            createdAt: now,
+            createdBy: userId,
+            parentId: latestVersionInfo.parentId,
+            sortKey: preservedSortKey,
+            indent: latestVersionInfo.indent,
+            collapsed: latestVersionInfo.collapsed,
+            payload: updateBlockDto.payload,
+            hash,
+            plainText:
+              updateBlockDto.plainText || this.extractPlainText(updateBlockDto.payload),
+            refs: [],
+          });
 
-      // 更新块的最新版本信息
-      block.latestVer = newVer;
-      block.latestAt = now;
-      block.latestBy = userId;
-      await manager.save(Block, block);
+          await manager.save(BlockVersion, blockVersion);
 
-      // 根据 createVersion 参数决定是否立即创建文档版本
-      const shouldCreateVersion = updateBlockDto.createVersion !== false; // 默认为 true
-      if (shouldCreateVersion) {
-        await this.incrementDocumentHead(block.docId, userId, manager);
-      }
-      // 如果 shouldCreateVersion 为 false，在事务外记录待创建版本
+          lockedBlock.latestVer = newVer;
+          lockedBlock.latestAt = now;
+          lockedBlock.latestBy = userId;
+          await manager.save(Block, lockedBlock);
 
-      return {
-        blockId,
-        version: newVer,
-        payload: updateBlockDto.payload,
-      };
-    });
+          const shouldCreateVersion = updateBlockDto.createVersion !== false;
+          if (shouldCreateVersion) {
+            await this.incrementDocumentHead(lockedBlock.docId, userId, manager);
+          }
+
+          return {
+            blockId,
+            version: newVer,
+            payload: updateBlockDto.payload,
+          };
+        }),
+      { blockId, userId },
+    );
 
     // 事务成功后，如果 createVersion 为 false，记录待创建版本
     if (updateBlockDto.createVersion === false) {
-      this.versionControlService.recordPendingVersion(block.docId);
+      this.versionControlService.recordPendingVersion(docId);
     }
-    const doc = await this.documentRepository.findOne({ where: { docId: block.docId }, select: ['workspaceId'] });
-    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.UPDATE, 'block', blockId, userId, { docId: block.docId });
+    const doc = await this.documentRepository.findOne({ where: { docId }, select: ['workspaceId'] });
+    if (doc) await this.activitiesService.record(doc.workspaceId, BLOCK_ACTIONS.UPDATE, 'block', blockId, userId, { docId });
     return result;
+  }
+
+  private isRetryableConflict(error: unknown): boolean {
+    const dbCode = (error as any)?.driverError?.code as string | undefined;
+    // 23505: unique_violation, 40001: serialization_failure, 40P01: deadlock_detected
+    return dbCode === '23505' || dbCode === '40001' || dbCode === '40P01';
+  }
+
+  private async delay(ms: number): Promise<void> {
+    await new Promise((resolve) => setTimeout(resolve, ms));
+  }
+
+  private async executeWithRetry<T>(
+    fn: () => Promise<T>,
+    context: { blockId: string; userId: string },
+    maxAttempts = 3,
+  ): Promise<T> {
+    let lastError: unknown;
+    for (let attempt = 1; attempt <= maxAttempts; attempt++) {
+      try {
+        return await fn();
+      } catch (error) {
+        lastError = error;
+        if (!this.isRetryableConflict(error) || attempt >= maxAttempts) {
+          throw error;
+        }
+
+        const dbCode = (error as any)?.driverError?.code;
+        const constraint = (error as any)?.driverError?.constraint;
+        const backoff = attempt === 1 ? 20 : 60;
+        this.logger.warn(
+          `updateContent 并发冲突重试: blockId=${context.blockId}, userId=${context.userId}, attempt=${attempt}/${maxAttempts}, dbCode=${dbCode ?? 'unknown'}, constraint=${constraint ?? 'unknown'}, backoffMs=${backoff}`,
+        );
+        await this.delay(backoff);
+      }
+    }
+    throw lastError;
   }
 
   /**
