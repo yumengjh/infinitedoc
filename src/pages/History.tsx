@@ -1,8 +1,10 @@
 import { useEffect, useState } from "react";
-import { Card, List, Typography, Empty, Tag, Space, Flex } from "antd";
+import { Card, List, Typography, Empty, Tag, Space, Flex, message } from "antd";
 import { HistoryOutlined, FileTextOutlined } from "@ant-design/icons";
 import { useDocumentEngineStore } from "../editor/useDocumentEngineStore";
 import { useDocumentContext } from "../context/documentContext";
+import LoadingState from "../component/Loading/LoadingState";
+import type { DocumentEngine } from "../engine/engine";
 
 const { Text, Paragraph } = Typography;
 
@@ -10,16 +12,24 @@ export default function HistoryPage() {
   const { currentDocument } = useDocumentContext();
   const { versions, historyPreviewHtml, docVer, selectedDocVer, loadVersionPreview, switchDocument } = useDocumentEngineStore();
   const [loading, setLoading] = useState(false);
+  const [initialLoading, setInitialLoading] = useState(false);
 
   useEffect(() => {
     if (currentDocument) {
       const engine = currentDocument.engine;
       const docId = currentDocument.docId;
-      switchDocument(docId, engine);
+      setInitialLoading(true);
+      void switchDocument(docId, engine)
+        .catch(() => {
+          message.error("加载历史版本失败，请稍后重试");
+        })
+        .finally(() => {
+          setInitialLoading(false);
+        });
     }
-  }, [currentDocument?.docId, switchDocument]);
+  }, [currentDocument, currentDocument?.docId, switchDocument]);
 
-  const handleVersionClick = async (engine: any, ver: number) => {
+  const handleVersionClick = async (engine: DocumentEngine, ver: number) => {
     setLoading(true);
     try {
       await loadVersionPreview(engine, ver);
@@ -43,10 +53,7 @@ export default function HistoryPage() {
 
   return (
     <div style={{ padding: 24, height: "calc(100vh - 48px)", boxSizing: "border-box" }}>
-      <Card
-        style={{ height: "100%" }}
-        styles={{ body: { padding: 16, height: "calc(100% - 57px)", display: "flex", flexDirection: "column" } }}
-      >
+      <Card style={{ height: "100%" }} styles={{ body: { padding: 16, height: "calc(100% - 57px)", display: "flex", flexDirection: "column" } }}>
         <Flex justify="space-between" align="center" style={{ marginBottom: 12 }}>
           <Space>
             <HistoryOutlined />
@@ -59,7 +66,10 @@ export default function HistoryPage() {
           查看文档 <Text strong>{currentDocument.title}</Text> 的历史版本，点击左侧条目预览内容。
         </Paragraph>
 
-        <Flex flex={1} gap={16} style={{ overflow: "hidden" }}>
+        {initialLoading ? (
+          <LoadingState tip="正在加载历史版本..." minHeight={"100%"} />
+        ) : (
+          <Flex flex={1} gap={16} style={{ overflow: "hidden" }}>
           <Card
             title={
               <Flex align="center" gap={8}>
@@ -129,7 +139,8 @@ export default function HistoryPage() {
               </Flex>
             )}
           </Card>
-        </Flex>
+          </Flex>
+        )}
       </Card>
     </div>
   );

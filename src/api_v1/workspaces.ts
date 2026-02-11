@@ -12,6 +12,7 @@ export interface UpdateWorkspacePayload {
   name?: string;
   description?: string | null;
   icon?: string | null;
+  settings?: Record<string, unknown>;
 }
 
 export interface InviteMemberPayload {

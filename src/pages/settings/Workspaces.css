@@ -1,0 +1,30 @@
+.workspace-list-item {
+  display: flex;
+  width: 100%;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.workspace-list-item__meta {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.workspace-list-item__title {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-role-select {
+  width: 130px;
+}
+
+.workspace-member-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+

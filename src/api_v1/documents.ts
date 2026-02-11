@@ -104,7 +104,7 @@ export const updateDocument = (
 };
 
 export const publishDocument = (docId: string, config?: RequestConfig) => {
-  return unwrap<void>(api.post(`/documents/${docId}/publish`, undefined, config));
+  return unwrap<DocumentMeta>(api.post(`/documents/${docId}/publish`, undefined, config));
 };
 
 export const moveDocument = (

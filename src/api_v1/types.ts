@@ -39,8 +39,10 @@ export interface User {
   displayName?: string;
   avatar?: string | null;
   bio?: string | null;
+  status?: string;
   settings?: Record<string, unknown>;
   createdAt?: string;
+  updatedAt?: string;
 }
 
 export interface Workspace {
@@ -49,6 +51,7 @@ export interface Workspace {
   description?: string | null;
   icon?: string | null;
   userRole?: string;
+  settings?: Record<string, unknown>;
   createdAt?: string;
   updatedAt?: string;
 }
@@ -81,12 +84,33 @@ export interface DocumentMeta {
 
 export interface DocumentContent {
   docId: string;
-  tree?: unknown;
+  docVer?: number;
+  title?: string;
+  tree?: DocumentContentTreeNode;
+  pagination?: DocumentContentPagination;
   totalBlocks?: number;
   returnedBlocks?: number;
   hasMore?: boolean;
   nextStartBlockId?: string | null;
   version?: number;
+}
+
+export interface DocumentContentTreeNode {
+  blockId: string;
+  type: string;
+  payload?: unknown;
+  parentId?: string;
+  sortKey?: string;
+  indent?: number;
+  collapsed?: boolean;
+  children?: DocumentContentTreeNode[];
+}
+
+export interface DocumentContentPagination {
+  totalBlocks?: number;
+  returnedBlocks?: number;
+  hasMore?: boolean;
+  nextStartBlockId?: string | null;
 }
 
 export interface DocumentRevision {

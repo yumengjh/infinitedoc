@@ -1,0 +1,120 @@
+.floating-ball {
+  position: fixed;
+  inset: 0 auto auto 0;
+  width: 64px;
+  height: 64px;
+  z-index: 1200;
+  touch-action: none;
+  cursor: grab;
+  transition: box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.floating-ball:active {
+  cursor: grabbing;
+}
+
+.floating-ball__core {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #1f67ff, #5ec3ff);
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.18);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  color: #fff;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  user-select: none;
+  pointer-events: none;
+}
+
+.floating-ball__dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.2);
+}
+
+.floating-ball__text {
+  font-size: 12px;
+}
+
+.floating-ball__panel {
+  position: absolute;
+  top: 50%;
+  left: 76px;
+  transform: translateY(-50%);
+  min-width: 240px;
+  background: #0b1221;
+  color: #f6f8ff;
+  border-radius: 12px;
+  box-shadow: 0 20px 48px rgba(0, 0, 0, 0.25);
+  padding: 12px 14px;
+  border: 1px solid rgba(255, 255, 255, 0.08);
+}
+
+.floating-ball__panel::before {
+  content: "";
+  position: absolute;
+  left: -10px;
+  top: 50%;
+  transform: translateY(-50%);
+  border-width: 10px;
+  border-style: solid;
+  border-color: transparent #0b1221 transparent transparent;
+}
+
+.floating-ball__panel-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-weight: 600;
+  margin-bottom: 8px;
+  gap: 8px;
+}
+
+.floating-ball__panel-actions {
+  display: flex;
+  gap: 6px;
+}
+
+.floating-ball__action {
+  border: 1px solid rgba(255, 255, 255, 0.18);
+  background: rgba(255, 255, 255, 0.06);
+  color: #f6f8ff;
+  border-radius: 8px;
+  padding: 4px 8px;
+  font-size: 12px;
+  cursor: pointer;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.floating-ball__action:hover {
+  background: rgba(255, 255, 255, 0.12);
+  border-color: rgba(255, 255, 255, 0.28);
+}
+
+.floating-ball__action--danger {
+  border-color: rgba(255, 99, 99, 0.4);
+  color: #ffdede;
+}
+
+.floating-ball__action--danger:hover {
+  background: rgba(255, 99, 99, 0.12);
+}
+
+.floating-ball__panel-body {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  font-size: 12px;
+  line-height: 1.5;
+  color: #dbe7ff;
+}
+
+.floating-ball__tip {
+  margin: 0;
+}

@@ -21,6 +21,7 @@ type Actions = {
   init: (docId: DocID, engine: any) => Promise<void>;
   switchDocument: (docId: DocID, engine: any) => Promise<void>;
   ensureBlock: (engine: any) => Promise<string>;
+  hydrateRemoteDocument: (payload: { docId: DocID; markdown: string; docVer?: number | null }) => void;
   setMarkdown: (text: string) => void;
   setEditor: (editor: AnyEditor | null) => void;
   refresh: (engine: any) => Promise<void>;
@@ -155,6 +156,16 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
 
   setMarkdown(text) {
     set({ markdown: text });
+  },
+
+  hydrateRemoteDocument(payload) {
+    set((state) => ({
+      docId: payload.docId,
+      markdown: payload.markdown ?? "",
+      docVer: typeof payload.docVer === "number" ? payload.docVer : state.docVer,
+      selectedDocVer: typeof payload.docVer === "number" ? payload.docVer : state.selectedDocVer,
+      initialized: true,
+    }));
   },
 
   setEditor(editor) {

@@ -1,0 +1,60 @@
+.settings-shell-page {
+  width: 100%;
+  min-height: 100%;
+  height: 100%;
+  padding: 16px 20px 16px;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  background: #ffffff;
+}
+
+.settings-shell-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.settings-shell-header-text {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-shell-body {
+  flex: 1;
+  min-height: 0;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 220px minmax(0, 1fr);
+  gap: 16px;
+}
+
+.settings-shell-sider {
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 8px 6px;
+  min-height: 0;
+}
+
+.settings-shell-sider .ant-menu {
+  border-inline-end: none !important;
+}
+
+.settings-shell-content {
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  border: 1px solid #e5e7eb;
+  border-radius: 12px;
+  background: #ffffff;
+  padding: 16px;
+}
+
+@media (max-width: 992px) {
+  .settings-shell-body {
+    grid-template-columns: 1fr;
+  }
+}

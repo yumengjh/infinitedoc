@@ -1,0 +1,120 @@
+.settings-page {
+  width: 100%;
+  max-width: 1100px;
+  margin: 0 auto;
+  padding: 20px 20px 28px;
+  box-sizing: border-box;
+}
+
+.settings-page-header {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  margin-bottom: 14px;
+}
+
+.settings-title {
+  margin-bottom: 0 !important;
+}
+
+.settings-alert {
+  margin-bottom: 14px;
+}
+
+.settings-tabs-card {
+  border-radius: 10px;
+}
+
+.settings-tab-pane {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-pane-meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.settings-inline-toggle {
+  min-width: 170px;
+}
+
+.settings-form-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.settings-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  font-size: 13px;
+  color: #334155;
+}
+
+.settings-field-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  line-height: 1.2;
+}
+
+.settings-source-tag {
+  margin: 0 !important;
+  border-radius: 999px;
+  font-size: 11px;
+  padding: 0 6px;
+}
+
+.settings-field-inline {
+  flex-direction: row;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.settings-field-inline .settings-field-label {
+  margin-right: auto;
+}
+
+.settings-effective-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.settings-effective-item {
+  border: 1px solid #e5e7eb;
+  border-radius: 8px;
+  background: #fafcff;
+  padding: 10px 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  color: #334155;
+}
+
+.settings-effective-item > strong {
+  color: #0f172a;
+  font-weight: 600;
+}
+
+.settings-font-preview {
+  font-family: var(--app-doc-code-font, SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace);
+  font-size: 12px;
+  word-break: break-all;
+}
+
+@media (max-width: 992px) {
+  .settings-form-grid,
+  .settings-effective-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .settings-inline-toggle {
+    min-width: auto;
+  }
+}

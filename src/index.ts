@@ -3,3 +3,4 @@ export * from "./engine/storage";
 export * from "./engine/types";
 export * from "./engine/diff";
 export * from "./engine/sortKey";
+export * from "./store";

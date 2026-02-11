@@ -22,7 +22,7 @@ export default function Login() {
 
   const redirectTo = useMemo(() => {
     const state = location.state as { from?: string } | null;
-    return state?.from || "/";
+    return state?.from || "/dash";
   }, [location.state]);
 
   const onFinish = async (values: LoginFormValues) => {

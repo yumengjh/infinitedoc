@@ -60,6 +60,26 @@ const fontSizeItems = [
   label: size,
 }));
 
+const codeLanguageItems = [
+  { key: "text", label: "Plain Text" },
+  { key: "javascript", label: "JavaScript" },
+  { key: "typescript", label: "TypeScript" },
+  { key: "tsx", label: "TSX" },
+  { key: "json", label: "JSON" },
+  { key: "bash", label: "Bash" },
+  { key: "html", label: "HTML" },
+  { key: "css", label: "CSS" },
+  { key: "sql", label: "SQL" },
+  { key: "yaml", label: "YAML" },
+  { key: "python", label: "Python" },
+  { key: "java", label: "Java" },
+  { key: "go", label: "Go" },
+  { key: "rust", label: "Rust" },
+].map((item) => ({
+  key: item.key,
+  label: item.label,
+}));
+
 // 有序列表编号方式选项（静态数据，不依赖组件）
 const orderedListTypeItems = [
   { key: "decimal", label: "1. 2. 3.", description: "数字" },
@@ -226,6 +246,20 @@ export default function Toolbar() {
     return "0"; // 正文
   };
 
+  const getCurrentCodeLanguage = (): string => {
+    if (!tiptap || !tiptap.isActive("codeBlock")) return "text";
+    const language = tiptap.getAttributes("codeBlock")?.language;
+    if (typeof language === "string" && language.trim()) {
+      return language.trim().toLowerCase();
+    }
+    return "text";
+  };
+
+  const getCurrentCodeLanguageLabel = (): string => {
+    const currentLang = getCurrentCodeLanguage();
+    return codeLanguageItems.find((item) => item.key === currentLang)?.label || currentLang;
+  };
+
   const dropdownHandlers: Record<string, (key: string) => void> = {
     "text-mode": (key: string) => {
       if (!tiptap) return;
@@ -262,14 +296,14 @@ export default function Toolbar() {
         (item as HTMLElement).style.listStyleType = key;
       });
     },
-  };
-
-  const handleDropdownClick = (id: string) => {
-    if (!tiptap) return;
-    return ({ key }: { key: string }) => {
-      const handler = dropdownHandlers[id];
-      if (handler) handler(key);
-    };
+    "code-language": (key: string) => {
+      if (!tiptap) return;
+      if (!tiptap.isActive("codeBlock")) {
+        tiptap.chain().focus().setCodeBlock({ language: key }).run();
+        return;
+      }
+      tiptap.chain().focus().updateAttributes("codeBlock", { language: key }).run();
+    },
   };
 
   // 处理颜色选择（带防抖）
@@ -512,6 +546,12 @@ export default function Toolbar() {
     [
       { id: "blockquote", label: "引用", content: <FileTextOutlined /> },
       { id: "code-block", label: "代码块", content: <CodeOutlined /> },
+      {
+        id: "code-language",
+        label: "代码语言",
+        content: <span className="text-label">{getCurrentCodeLanguageLabel()}</span>,
+        type: "dropdown",
+      },
       { id: "link", label: "链接", content: <LinkOutlined /> },
     ],
   ];
@@ -620,6 +660,15 @@ export default function Toolbar() {
                                   <span className="font-size-menu-label">{sizeItem.label}</span>
                                 </div>
                               ),
+                            };
+                          })
+                        : item.id === "code-language"
+                        ? codeLanguageItems.map((langItem) => {
+                            const active = langItem.key === getCurrentCodeLanguage();
+                            return {
+                              key: langItem.key,
+                              label: langItem.label,
+                              ...(active ? { icon: <span style={{ color: "#1890ff" }}>✓</span> } : {}),
                             };
                           })
                         : fontSizeItems,

@@ -131,6 +131,13 @@
   gap: 0;
 }
 
+.documents-loading,
+.documents-empty {
+  padding: 12px 16px;
+  color: #6b7280;
+  font-size: 13px;
+}
+
 .document-row {
   display: flex;
   align-items: center;
@@ -143,6 +150,10 @@
 
 .document-row:hover {
   background: #f9fafb;
+}
+
+.document-row.loading {
+  opacity: 0.7;
 }
 
 .document-row-icon {

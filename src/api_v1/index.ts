@@ -12,6 +12,7 @@ export * from "./search";
 export * from "./activities";
 export * from "./assets";
 export * from "./security";
+export * from "./settings";
 
 import { authApi } from "./auth";
 import { workspaceApi } from "./workspaces";
@@ -24,6 +25,7 @@ import { searchApi } from "./search";
 import { activityApi } from "./activities";
 import { assetApi } from "./assets";
 import { securityApi } from "./security";
+import { settingsApi } from "./settings";
 
 export const apiV1 = {
   auth: authApi,
@@ -37,4 +39,5 @@ export const apiV1 = {
   activities: activityApi,
   assets: assetApi,
   security: securityApi,
+  settings: settingsApi,
 };

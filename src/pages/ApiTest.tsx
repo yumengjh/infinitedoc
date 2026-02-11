@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   Alert,
   Button,
@@ -14,6 +14,7 @@ import {
   Upload,
   message,
 } from "antd";
+import { LoadingOutlined } from "@ant-design/icons";
 import type { UploadProps } from "antd/es/upload/interface";
 import type { RcFile } from "antd/es/upload";
 import JsonView from "@uiw/react-json-view";
@@ -21,7 +22,7 @@ import { apiV1, tokenManager } from "../api_v1";
 
 type FormValues = Record<string, string>;
 
-const { Title, Paragraph, Text } = Typography;
+const { Paragraph, Text } = Typography;
 
 const toRenderable = (value: unknown) => {
   if (value instanceof Error) {
@@ -55,12 +56,65 @@ const useLog = () => {
   return { entry, append };
 };
 
+const pickErrorMessage = (error: unknown): string | undefined => {
+  const visited = new WeakSet<object>();
+
+  const walk = (val: unknown): string | undefined => {
+    if (val === null || val === undefined) return undefined;
+    if (typeof val === "string") {
+      const trimmed = val.trim();
+      return trimmed ? trimmed : undefined;
+    }
+    if (Array.isArray(val)) {
+      for (const item of val) {
+        const found = walk(item);
+        if (found) return found;
+      }
+      return undefined;
+    }
+    if (typeof val === "object") {
+      const obj = val as Record<string, unknown>;
+      if (visited.has(obj)) return undefined;
+      visited.add(obj);
+
+      // 常见字段优先
+      const candidates = [obj.message, obj.msg, obj.error, obj.code];
+      for (const c of candidates) {
+        const found = walk(c);
+        if (found) return found;
+      }
+
+      for (const v of Object.values(obj)) {
+        const found = walk(v);
+        if (found) return found;
+      }
+    }
+    return undefined;
+  };
+
+  // 直接尝试 error 自身
+  const primary = walk(error);
+  if (primary) return primary;
+
+  // 针对 axios 包装的响应体
+  if (error && typeof error === "object") {
+    const errObj = error as Record<string, unknown>;
+    const raw = errObj.raw as Record<string, unknown> | undefined;
+    const respData = (errObj.response as { data?: unknown } | undefined)?.data;
+    const rawRespData = (raw?.response as { data?: unknown } | undefined)?.data;
+    const secondary = walk(respData) || walk(rawRespData) || walk(raw);
+    if (secondary) return secondary;
+  }
+
+  return undefined;
+};
+
 export default function ApiTestPage() {
   const [loadingKey, setLoadingKey] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<string>("auth");
   const { entry, append } = useLog();
 
-  const run = async <T,>(key: string, task: () => Promise<T>) => {
+  const run = useCallback(async <T,>(key: string, task: () => Promise<T>) => {
     try {
       setLoadingKey(key);
       const res = await task();
@@ -69,12 +123,15 @@ export default function ApiTestPage() {
       return res;
     } catch (error) {
       append(`${key} 失败`, error);
-      message.error(`${key} 失败`);
+      const errMsg = pickErrorMessage(error);
+      message.error(errMsg ? `${key} 失败：${errMsg}` : `${key} 失败`);
+      // 同步到控制台便于调试
+      console.debug("[api_v1 demo] run error", { key, error });
       return undefined;
     } finally {
       setLoadingKey(null);
     }
-  };
+  }, [append]);
 
   const [authForm] = Form.useForm<FormValues>();
   const [workspaceForm] = Form.useForm<FormValues>();
@@ -189,6 +246,15 @@ export default function ApiTestPage() {
           </Form>
         </Card>
         <Card title="API 功能测试" bordered={false}>
+          {loadingKey && (
+            <Alert
+              style={{ marginBottom: 12 }}
+              type="info"
+              showIcon
+              icon={<LoadingOutlined spin />}
+              message={`正在执行：${loadingKey}`}
+            />
+          )}
           <Tabs activeKey={activeTab} onChange={setActiveTab} items={[
             {
               key: "auth",
@@ -1093,7 +1159,7 @@ export default function ApiTestPage() {
               children: (
                 <Space direction="vertical" style={{ width: "100%" }}>
                   <Upload {...uploadProps}>
-                    <Button>上传资产（使用 workspaceId）</Button>
+                    <Button loading={loadingKey === "uploadAsset"}>上传资产（使用 workspaceId）</Button>
                   </Upload>
                   <Form form={assetForm} layout="vertical">
                     <Form.Item label="assetId" name="assetId">

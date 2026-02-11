@@ -1,48 +1,77 @@
-// App.tsx
-import { NavLink, useLocation, useNavigate } from "react-router-dom";
-import { useEffect, useRef, useState, type ReactNode } from "react";
-import "./style.css";
-import { useDocumentContext } from "../../context/documentContext";
-
-import { 
-  Tooltip, 
-  Input, 
-  Button, 
-  Tree, 
-  Dropdown,
-  type MenuProps,
-  type TreeDataNode 
-} from "antd";
+import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import { NavLink, useNavigate } from "react-router-dom";
+import { Avatar, Button, Dropdown, Input, Tooltip, message, type MenuProps } from "antd";
 import {
-  HomeOutlined,
-  ToolOutlined,
-  HistoryOutlined,
-  PlusOutlined,
-  MoreOutlined,
-  GlobalOutlined,
-  SearchOutlined,
-  FileTextOutlined,
-  FolderOutlined,
-  FolderOpenOutlined,
-  EditOutlined,
-  CopyOutlined,
-  LinkOutlined,
-  FolderOpenFilled,
-  AppstoreOutlined,
-  ExportOutlined,
-  ScissorOutlined,
-  DeleteOutlined,
   BookOutlined,
-  RightOutlined,
-  DownOutlined,
-  TableOutlined,
-  PictureOutlined,
-  BarChartOutlined,
-  FileAddOutlined,
-  ImportOutlined,
+  FileTextOutlined,
+  HomeOutlined,
+  LoadingOutlined,
+  MoreOutlined,
+  PlusOutlined,
+  SearchOutlined,
+  ToolOutlined,
+  UserOutlined,
 } from "@ant-design/icons";
+import { useDocumentContext } from "../../context/documentContext";
+import { apiV1 } from "../../api_v1";
+import { useSessionStore } from "../../store";
+import "./style.css";
 
-const { Search } = Input;
+const DEFAULT_WIDTH = 350;
+const MIN_WIDTH = 250;
+const MAX_WIDTH = 420;
+const COLLAPSE_THRESHOLD = 120;
+const SIDEBAR_LAYOUT_STORAGE_KEY = "app.sidebar.layout.v1";
+
+type PersistedSidebarLayout = {
+  width: number;
+  isCollapsed: boolean;
+  lastExpandedWidth: number;
+};
+
+const clampExpandedWidth = (value: number): number => {
+  return Math.max(MIN_WIDTH, Math.min(MAX_WIDTH, value));
+};
+
+const readPersistedSidebarLayout = (): PersistedSidebarLayout => {
+  const fallback: PersistedSidebarLayout = {
+    width: DEFAULT_WIDTH,
+    isCollapsed: false,
+    lastExpandedWidth: DEFAULT_WIDTH,
+  };
+  if (typeof window === "undefined") return fallback;
+  try {
+    const raw = window.localStorage.getItem(SIDEBAR_LAYOUT_STORAGE_KEY);
+    if (!raw) return fallback;
+    const parsed = JSON.parse(raw) as Partial<PersistedSidebarLayout>;
+    const isCollapsed = Boolean(parsed.isCollapsed);
+    const safeLastExpandedWidth = Number.isFinite(parsed.lastExpandedWidth)
+      ? clampExpandedWidth(Number(parsed.lastExpandedWidth))
+      : DEFAULT_WIDTH;
+    const rawWidth = Number(parsed.width);
+    const safeWidth = isCollapsed
+      ? 0
+      : Number.isFinite(rawWidth) && rawWidth > 0
+        ? clampExpandedWidth(rawWidth)
+        : safeLastExpandedWidth;
+    return {
+      width: safeWidth,
+      isCollapsed,
+      lastExpandedWidth: safeLastExpandedWidth,
+    };
+  } catch {
+    return fallback;
+  }
+};
+
+const writePersistedSidebarLayout = (layout: PersistedSidebarLayout) => {
+  if (typeof window === "undefined") return;
+  try {
+    window.localStorage.setItem(SIDEBAR_LAYOUT_STORAGE_KEY, JSON.stringify(layout));
+  } catch {
+    // ignore localStorage write failures
+  }
+};
 
 type SidebarItem = {
   key: string;
@@ -55,464 +84,338 @@ type SidebarProps = {
   children?: ReactNode;
 };
 
-export default function Sidebar({ items = [], children }: SidebarProps) {
-  const location = useLocation();
+const generateUUID = (): string => {
+  if (typeof globalThis.crypto?.randomUUID === "function") {
+    return globalThis.crypto.randomUUID();
+  }
+  if (typeof globalThis.crypto?.getRandomValues === "function") {
+    const arr = new Uint8Array(16);
+    globalThis.crypto.getRandomValues(arr);
+    return Array.from(arr)
+      .map((item) => item.toString(16).padStart(2, "0"))
+      .join("");
+  }
+  return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
+};
+
+export default function Sidebar({ items: _items = [] }: SidebarProps) {
   const navigate = useNavigate();
-  const { documents, currentDocId, switchDocument, addDocument } = useDocumentContext();
+  const { addDocument, switchDocument } = useDocumentContext();
   const sidebarRef = useRef<HTMLDivElement | null>(null);
-  const [width, setWidth] = useState<number>(350); // 当前宽度（用于 inline style）
-  const [isResizing, setIsResizing] = useState(false); // 鼠标是否在拖拽
-  const [isCollapsed, setIsCollapsed] = useState(false); // 视觉上的"折叠"（宽度为 0）
-  const defaultWidth = 350;
-  const MIN = 250;
-  const MAX = 350;
-  const HIDE_THRESHOLD = 0;
-  const [selectedDocKey, setSelectedDocKey] = useState<React.Key | null>(currentDocId || null);
-  const [searchValue, setSearchValue] = useState<string>("");
+  const initialLayout = useMemo(() => readPersistedSidebarLayout(), []);
+  const currentDocId = useSessionStore((state) => state.docId);
+  const workspaceId = useSessionStore((state) => state.workspaceId);
+  const currentWorkspace = useSessionStore((state) => state.currentWorkspace);
+  const docList = useSessionStore((state) => state.docList);
+  const docListStatus = useSessionStore((state) => state.status.docList);
+  const docError = useSessionStore((state) => state.errors.doc);
 
-  // 工作区更多操作菜单
-  const workspaceMenuItems: MenuProps["items"] = [
-    { key: "1", label: "工作区设置" },
-    { key: "2", label: "成员管理" },
-    { type: "divider" },
-    { key: "3", label: "导出数据" },
-  ];
+  const [searchValue, setSearchValue] = useState("");
+  const [sidebarWidth, setSidebarWidth] = useState(initialLayout.width);
+  const [isResizing, setIsResizing] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(initialLayout.isCollapsed);
+  const [creatingDoc, setCreatingDoc] = useState(false);
+  const [openingDocId, setOpeningDocId] = useState<string | null>(null);
+  const [selectedDocKey, setSelectedDocKey] = useState<string | null>(currentDocId);
+  const [currentUserDisplayName, setCurrentUserDisplayName] = useState("当前用户");
+  const [currentUserSubText, setCurrentUserSubText] = useState("加载中...");
+  const [currentUserAvatar, setCurrentUserAvatar] = useState<string | null>(null);
+  const lastExpandedWidthRef = useRef(initialLayout.lastExpandedWidth);
 
-  // 将当前侧边栏宽度同步到全局 CSS 变量，供 Header / Toolbar 等使用
   useEffect(() => {
-    document.documentElement.style.setProperty(
-      "--sidebar-width",
-      `${width + 20}px`
-    );
-  }, [width]);
+    setSelectedDocKey(currentDocId);
+  }, [currentDocId]);
 
-  // ----- 开始拖拽 -----
-  const startResizing = () => {
-    // 只有在非折叠下才允许拖拽
-    if (isCollapsed) return;
-    setIsResizing(true);
-    // 禁用 transition，保证拖拽实时无延迟
-    if (sidebarRef.current) {
-      sidebarRef.current.style.transition = "none";
-    }
-  };
-
-  // ----- 拖拽中（全局监听） -----
   useEffect(() => {
-    const onMove = (e: MouseEvent) => {
-      if (!isResizing) return;
-      let newW = e.clientX;
-      if (newW < HIDE_THRESHOLD) {
-        // 当拖到阈值以下，触发折叠动画（不要马上卸载）
-        // 先设置宽度为 0，然后在 transitionend 里做后续处理
-        if (sidebarRef.current) {
-          // 恢复 transition 设置为折叠动画
-          sidebarRef.current.style.transition =
-            "width 0.25s ease, padding 0.25s ease, opacity 0.2s ease";
-        }
-        setWidth(0);
-        setIsResizing(false); // 停止拖拽逻辑（避免重复）
-        setIsCollapsed(true); // 视觉上标记要折叠（但我们仍保留 DOM）
+    let cancelled = false;
+    const run = async () => {
+      try {
+        const me = await apiV1.auth.me();
+        if (cancelled) return;
+        const displayName = me.displayName?.trim() || me.username?.trim() || "当前用户";
+        const subText = me.email?.trim() || me.username?.trim() || "未设置邮箱";
+        setCurrentUserDisplayName(displayName);
+        setCurrentUserSubText(subText);
+        setCurrentUserAvatar(me.avatar || null);
+      } catch {
+        if (cancelled) return;
+        setCurrentUserDisplayName("当前用户");
+        setCurrentUserSubText("资料加载失败");
+        setCurrentUserAvatar(null);
+      }
+    };
+    void run();
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
+  useEffect(() => {
+    const width = isCollapsed ? 0 : sidebarWidth + 14;
+    document.documentElement.style.setProperty("--sidebar-width", `${width}px`);
+  }, [isCollapsed, sidebarWidth]);
+
+  useEffect(() => {
+    if (isCollapsed || sidebarWidth <= 0) return;
+    lastExpandedWidthRef.current = clampExpandedWidth(sidebarWidth);
+  }, [isCollapsed, sidebarWidth]);
+
+  useEffect(() => {
+    writePersistedSidebarLayout({
+      width: isCollapsed ? 0 : sidebarWidth,
+      isCollapsed,
+      lastExpandedWidth: lastExpandedWidthRef.current,
+    });
+  }, [isCollapsed, sidebarWidth]);
+
+  useEffect(() => {
+    if (!isResizing) return;
+
+    const onMouseMove = (event: MouseEvent) => {
+      let nextWidth = event.clientX;
+      if (nextWidth < COLLAPSE_THRESHOLD) {
+        nextWidth = 0;
+      }
+      nextWidth = Math.max(0, Math.min(MAX_WIDTH, nextWidth));
+      if (nextWidth === 0) {
+        setIsCollapsed(true);
+        setSidebarWidth(0);
         return;
       }
-      if (newW < MIN) newW = MIN;
-      if (newW > MAX) newW = MAX;
-      setWidth(newW);
-    };
-
-    const onUp = () => {
-      if (!isResizing) return;
-      setIsResizing(false);
-      // 恢复 transition，这样如果用户放开鼠标后我们想做回弹动画就会生效
-      if (sidebarRef.current) {
-        sidebarRef.current.style.transition = ""; // 还原到 css 中的 transition 规则
+      if (nextWidth < MIN_WIDTH) {
+        nextWidth = MIN_WIDTH;
       }
-      // no other immediate changes here
+      lastExpandedWidthRef.current = nextWidth;
+      setIsCollapsed(false);
+      setSidebarWidth(nextWidth);
     };
 
-    window.addEventListener("mousemove", onMove);
-    window.addEventListener("mouseup", onUp);
+    const onMouseUp = () => {
+      setIsResizing(false);
+    };
+
+    document.body.style.cursor = "col-resize";
+    document.body.style.userSelect = "none";
+    window.addEventListener("mousemove", onMouseMove);
+    window.addEventListener("mouseup", onMouseUp);
+
     return () => {
-      window.removeEventListener("mousemove", onMove);
-      window.removeEventListener("mouseup", onUp);
+      document.body.style.cursor = "";
+      document.body.style.userSelect = "";
+      window.removeEventListener("mousemove", onMouseMove);
+      window.removeEventListener("mouseup", onMouseUp);
     };
   }, [isResizing]);
 
-  // ----- transitionend 事件：在动画结束后做最终处理 -----
-  useEffect(() => {
-    const el = sidebarRef.current;
-    if (!el) return;
+  const startResizing = (event: ReactMouseEvent<HTMLDivElement>) => {
+    if (isCollapsed) return;
+    const target = event.target as HTMLElement;
+    if (target.closest(".toggle-btn")) return;
+    setIsResizing(true);
+  };
 
-    const onTransitionEnd = (ev: TransitionEvent) => {
-      // 我们关心 width 过渡结束时（也可检查 propertyName === 'width'）
-      if (ev.propertyName !== "width") return;
-
-      if (isCollapsed) {
-        // 折叠动画完成后，保持宽度 0，并让侧边栏不可交互（pointer-events）
-        // 我们不卸载组件，仅使其不可见/不可交互以避免卡顿
-        if (sidebarRef.current) {
-          sidebarRef.current.style.pointerEvents = "none";
-        }
-      } else {
-        // 展开动画完成后，确保可以交互
-        if (sidebarRef.current) {
-          sidebarRef.current.style.pointerEvents = "";
-        }
-      }
-    };
-
-    el.addEventListener("transitionend", onTransitionEnd);
-    return () => el.removeEventListener("transitionend", onTransitionEnd);
-  }, [isCollapsed]);
-
-  // ----- 点击切换折叠/展开 -----
-  const toggle = () => {
-    if (!isCollapsed) {
-      // 触发折叠动画：设置 transition（使用 CSS 里已存在，但为保险这里可以明确设置）
-      if (sidebarRef.current) {
-        sidebarRef.current.style.transition =
-          "width 0.25s ease, padding 0.25s ease, opacity 0.2s ease";
-      }
-      setWidth(0);
-      setIsCollapsed(true);
-    } else {
-      // 展开：先允许交互，然后把宽度设回默认值；使用 requestAnimationFrame 保证样式刷新顺序正确
-      if (sidebarRef.current) {
-        sidebarRef.current.style.pointerEvents = ""; // 允许交互
-        // 明确 transition，保证展开有动画
-        sidebarRef.current.style.transition =
-          "width 0.25s ease, padding 0.25s ease, opacity 0.2s ease";
-      }
+  const toggleSidebar = () => {
+    if (isCollapsed) {
+      const restoreWidth = clampExpandedWidth(lastExpandedWidthRef.current || DEFAULT_WIDTH);
       setIsCollapsed(false);
-      // 使用 rAF 确保 DOM 已渲染 collapsed -> then set width
-      requestAnimationFrame(() => {
-        setWidth(defaultWidth);
-      });
+      setSidebarWidth(restoreWidth);
+      return;
     }
+    lastExpandedWidthRef.current = sidebarWidth > 0 ? sidebarWidth : DEFAULT_WIDTH;
+    setIsCollapsed(true);
+    setSidebarWidth(0);
   };
 
-  // ----- 当宽度通过外部逻辑被设置为非零时确保不是 collapsed -----
-  useEffect(() => {
-    if (width > 0 && isCollapsed) {
-      // 说明外部设置恢复了宽度，解除折叠标记
-      setIsCollapsed(false);
-    }
-  }, [width, isCollapsed]);
+  const filteredDocs = useMemo(() => {
+    const keyword = searchValue.trim().toLowerCase();
+    if (!keyword) return docList;
+    return docList.filter((doc) => (doc.title || "").toLowerCase().includes(keyword));
+  }, [docList, searchValue]);
 
-  // 处理搜索
-  const handleSearch = (value: string) => {
-    setSearchValue(value);
-    // 这里可以添加搜索逻辑
-  };
+  const navItems: SidebarItem[] =
+    _items.length > 0
+      ? _items
+      : [
+          { key: "dash", label: "首页", path: "/dash" },
+          { key: "api-test", label: "接口测试", path: "/api-test" },
+        ];
 
-  // 处理文档切换
-  const handleDocSelect = async (docId: string) => {
-    setSelectedDocKey(docId);
-    await switchDocument(docId);
-    navigate(`/doc/${docId}`);
-  };
-
-  // 创建文档菜单项
-  const createDocMenuItems: MenuProps["items"] = [
+  const workspaceMenuItems: MenuProps["items"] = [
     {
-      key: "document",
-      label: "文档",
-      icon: <FileTextOutlined style={{ color: "#3b82f6" }} />,
+      key: "workspace-detail",
+      label: "工作空间设置",
+      onClick: () => navigate("/settings/workspaces/overview"),
     },
     {
-      key: "table",
-      label: "表格",
-      icon: <TableOutlined style={{ color: "#16a34a" }} />,
+      key: "members",
+      label: "成员管理",
+      onClick: () => navigate("/settings/workspaces/members"),
     },
     {
-      key: "canvas",
-      label: "画板",
-      icon: <PictureOutlined style={{ color: "#9333ea" }} />,
-    },
-    {
-      key: "datatable",
-      label: "数据表",
-      icon: <BarChartOutlined style={{ color: "#3b82f6" }} />,
-    },
-    { type: "divider" },
-    {
-      key: "template",
-      label: "从模板新建...",
-      icon: <AppstoreOutlined />,
-    },
-    {
-      key: "import",
-      label: "导入...",
-      icon: <ImportOutlined />,
-    },
-    {
-      key: "ai",
-      label: "AI 帮你写",
-      icon: <AppstoreOutlined style={{ color: "#16a34a" }} />,
-    },
-    { type: "divider" },
-    {
-      key: "group",
-      label: "新建分组",
-      icon: <FolderOutlined style={{ color: "#92400e" }} />,
-    },
-    {
-      key: "link",
-      label: "添加链接",
-      icon: <LinkOutlined style={{ color: "#3b82f6" }} />,
+      key: "settings",
+      label: "偏好设置",
+      onClick: () => navigate("/settings/preferences"),
     },
   ];
 
-  // 生成 UUID
-  const generateUUID = (): string => {
-    if (typeof globalThis.crypto?.randomUUID === "function") {
-      return globalThis.crypto.randomUUID();
-    }
-    if (typeof globalThis.crypto?.getRandomValues === "function") {
-      const arr = new Uint8Array(16);
-      globalThis.crypto.getRandomValues(arr);
-      return Array.from(arr)
-        .map((b) => b.toString(16).padStart(2, "0"))
-        .join("");
-    }
-    return `${Date.now().toString(36)}${Math.random().toString(36).slice(2, 10)}`;
-  };
+  const createDocMenuItems: MenuProps["items"] = [
+    { key: "document", label: "新建文档" },
+    { key: "table", label: "新建表格（预留）" },
+    { key: "canvas", label: "新建画板（预留）" },
+  ];
 
-  // 处理创建文档（根据类型）
-  const handleCreateDocumentByType = async (type: string) => {
-    const typeNames: Record<string, string> = {
-      document: "未命名文档",
-      table: "未命名表格",
-      canvas: "未命名画板",
-      datatable: "未命名数据表",
-      group: "未命名分组",
-    };
-    
-    const defaultTitle = typeNames[type] || "未命名文档";
-    const newDocId = generateUUID();
-    
-    try {
-      await addDocument(newDocId, defaultTitle);
-    } catch (error) {
-      console.error("Failed to create document:", error);
-    }
-  };
-
-  // 同步当前文档ID到选中状态
-  useEffect(() => {
-    if (currentDocId) {
-      setSelectedDocKey(currentDocId);
-    }
-  }, [currentDocId]);
-
-  // 获取当前活动的导航路径
-  const getActiveNavKey = () => {
-    if (location.pathname === "/") return "home";
-    if (location.pathname === "/tool") return "tool";
-    if (location.pathname === "/history") return "history";
-    return "";
-  };
-
-  // 文档节点右键菜单
-  const getDocNodeMenu = (docId: string, docTitle: string): MenuProps["items"] => [
-    {
-      key: "rename",
-      label: "重命名",
-      icon: <EditOutlined />,
-      onClick: () => console.log("重命名:", docId, docTitle),
-    },
+  const getDocNodeMenu = (docId: string): MenuProps["items"] => [
     {
       key: "copy-link",
       label: "复制链接",
-      icon: <LinkOutlined />,
-      onClick: () => console.log("复制链接:", docId, docTitle),
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "duplicate",
-      label: "复制...",
-      icon: <CopyOutlined />,
-      onClick: () => console.log("复制:", docId, docTitle),
-    },
-    {
-      key: "export",
-      label: "导出...",
-      icon: <ExportOutlined />,
-      onClick: () => console.log("导出:", docId, docTitle),
-    },
-    {
-      type: "divider",
-    },
-    {
-      key: "delete",
-      label: "删除",
-      icon: <DeleteOutlined />,
-      danger: true,
-      onClick: () => console.log("删除:", docId, docTitle),
+      onClick: () => {
+        const url = `${window.location.origin}/doc/${docId}`;
+        void navigator.clipboard.writeText(url);
+        message.success("文档链接已复制");
+      },
     },
   ];
 
+  const handleDocSelect = async (docId: string) => {
+    if (openingDocId === docId || creatingDoc) return;
+    setSelectedDocKey(docId);
+    setOpeningDocId(docId);
+    try {
+      await switchDocument(docId);
+      navigate(`/doc/${docId}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "打开文档失败";
+      message.error(msg);
+    } finally {
+      setOpeningDocId(null);
+    }
+  };
+
+  const handleCreateDocument = async () => {
+    if (creatingDoc) return;
+    if (!workspaceId) {
+      message.warning("请先选择工作空间，再创建文档");
+      navigate("/settings/workspaces/list");
+      return;
+    }
+    const newDocId = generateUUID();
+    setCreatingDoc(true);
+    try {
+      const createdDocId = await addDocument(newDocId, "未命名文档");
+      navigate(`/doc/${createdDocId}`);
+    } catch (error) {
+      const msg = error instanceof Error ? error.message : "创建文档失败";
+      message.error(msg);
+    } finally {
+      setCreatingDoc(false);
+    }
+  };
+
   return (
     <div className="app-container">
-      {/* 永远渲染侧边栏 —— 用类/样式控制可见性与交互 */}
       <div
         ref={sidebarRef}
-        className={`sidebar ${isCollapsed ? "collapsed" : ""} ${
-          isResizing ? "no-transition" : ""
-        }`}
+        className={`sidebar ${isCollapsed ? "collapsed" : ""} ${isResizing ? "no-transition" : ""}`}
         style={{
-          width: width,
-          // 当折叠时缩小 padding 以避免内容冲突（和 CSS transition 保持一致）
-          paddingLeft: isCollapsed ? 0 : undefined,
-          paddingRight: isCollapsed ? 0 : undefined,
+          width: isCollapsed ? 0 : sidebarWidth,
           opacity: isCollapsed ? 0 : 1,
+          pointerEvents: isCollapsed ? "none" : "auto",
         }}
       >
         <div className="sidebar-inner">
           <div className="sidebar-top">
-            {/* 面包屑导航 */}
-            <div className="sidebar-breadcrumb">
-              <span className="breadcrumb-icon">Z</span>
-              <RightOutlined className="breadcrumb-arrow" />
-              <span className="breadcrumb-text">个人知识库</span>
+            <div className="sidebar-user-summary">
+              <Avatar
+                size={28}
+                src={currentUserAvatar || undefined}
+                icon={!currentUserAvatar ? <UserOutlined /> : undefined}
+                className="sidebar-user-summary__avatar"
+              />
+              <div className="sidebar-user-summary__text">
+                <span className="sidebar-user-summary__name">{currentUserDisplayName}</span>
+                <span className="sidebar-user-summary__sub">{currentUserSubText}</span>
+              </div>
             </div>
-            
-            {/* 工作区信息 */}
+
             <div className="sidebar-workspace">
               <BookOutlined className="workspace-icon" />
-              <span className="workspace-name">Demo</span>
-              <GlobalOutlined className="workspace-globe" />
+              <span className="workspace-name">{currentWorkspace?.name || "未选择工作空间"}</span>
               <Dropdown menu={{ items: workspaceMenuItems }} trigger={["click"]} placement="bottomLeft">
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<DownOutlined />}
-                  className="workspace-dropdown"
-                />
-              </Dropdown>
-              <Dropdown menu={{ items: workspaceMenuItems }} trigger={["click"]} placement="bottomRight">
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<MoreOutlined />}
-                  className="workspace-more"
-                />
+                <Button type="text" size="small" icon={<MoreOutlined />} className="workspace-more" />
               </Dropdown>
             </div>
-            
-            {/* 搜索框 */}
+
             <div className="sidebar-search-row">
               <div className="sidebar-search-wrapper">
                 <SearchOutlined className="search-icon" />
                 <Input
-                  placeholder="搜索"
+                  placeholder="搜索文档"
                   value={searchValue}
                   onChange={(e) => setSearchValue(e.target.value)}
-                  onPressEnter={(e) => handleSearch((e.target as HTMLInputElement).value)}
                   className="sidebar-search-input"
                   bordered={false}
                 />
-                <span className="search-shortcut">Ctrl + J</span>
               </div>
               <Dropdown
                 menu={{
                   items: createDocMenuItems,
-                  onClick: ({ key }) => {
-                    if (["document", "table", "canvas", "datatable", "group"].includes(key)) {
-                      handleCreateDocumentByType(key);
-                    } else {
-                      // 其他功能暂时不实现
-                      console.log("功能暂未实现:", key);
-                    }
-                  },
+                  onClick: () => void handleCreateDocument(),
                 }}
                 trigger={["click"]}
-                placement="bottomRight"
               >
-                <Button
-                  type="text"
-                  size="small"
-                  icon={<PlusOutlined />}
-                  className="search-add-btn"
-                />
+                <Button type="text" size="small" icon={<PlusOutlined />} className="search-add-btn" loading={creatingDoc} />
               </Dropdown>
             </div>
           </div>
 
           <div className="sidebar-fixed">
-            <NavLink
-              to="/"
-              className={({ isActive }) =>
-                `fixed-item ${isActive ? "active" : ""}`
-              }
-            >
-              <HomeOutlined />
-              <span>首页</span>
-            </NavLink>
-            {/* <NavLink
-              to="/tool"
-              className={({ isActive }) =>
-                `fixed-item ${isActive ? "active" : ""}`
-              }
-            >
-              <ToolOutlined />
-              <span>工具</span>
-            </NavLink> */}
-            <NavLink
-              to="/history"
-              className={({ isActive }) =>
-                `fixed-item ${isActive ? "active" : ""}`
-              }
-            >
-              <HistoryOutlined />
-              <span>历史版本</span>
-            </NavLink>
+            {navItems.map((item) => (
+              <NavLink key={item.key} to={item.path} className={({ isActive }) => `fixed-item ${isActive ? "active" : ""}`}>
+                {(item.key === "home" || item.key === "dash") && <HomeOutlined />}
+                {item.key === "api-test" && <ToolOutlined />}
+                {item.key !== "home" &&
+                  item.key !== "dash" &&
+                  item.key !== "api-test" &&
+                  <HomeOutlined />}
+                <span>{item.label}</span>
+              </NavLink>
+            ))}
           </div>
 
           <div className="sidebar-scroll">
             <div className="documents-section">
               <div className="documents-header">
-                <span className="documents-title">文档</span>
-                <Dropdown
-                  menu={{
-                    items: createDocMenuItems,
-                    onClick: ({ key }) => {
-                      if (["document", "table", "canvas", "datatable", "group"].includes(key)) {
-                        handleCreateDocumentByType(key);
-                      } else {
-                        // 其他功能暂时不实现
-                        console.log("功能暂未实现:", key);
-                      }
-                    },
-                  }}
-                  trigger={["click"]}
-                  placement="bottomLeft"
-                >
-                  <Button
-                    type="text"
-                    size="small"
-                    icon={<PlusOutlined />}
-                    className="new-doc-btn"
-                  />
-                </Dropdown>
+                <span className="documents-title">文档列表</span>
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  className="new-doc-btn"
+                  loading={creatingDoc}
+                  onClick={() => void handleCreateDocument()}
+                />
               </div>
 
               <div className="documents-list">
-                {documents.map((doc) => (
+                {docListStatus === "loading" && (
+                  <div className="document-loading-row">
+                    <LoadingOutlined className="document-icon" />
+                    <span className="document-title">文档加载中...</span>
+                  </div>
+                )}
+                {filteredDocs.map((doc) => (
                   <div
                     key={doc.docId}
-                    className={`document-item ${selectedDocKey === doc.docId ? "active" : ""}`}
-                    onClick={() => handleDocSelect(doc.docId)}
+                    className={`document-item ${selectedDocKey === doc.docId ? "active" : ""} ${openingDocId === doc.docId ? "loading" : ""}`}
+                    onClick={() => void handleDocSelect(doc.docId)}
                   >
-                    <FileTextOutlined className="document-icon" />
-                    <span className="document-title">{doc.title}</span>
-                    <Dropdown
-                      menu={{ items: getDocNodeMenu(doc.docId, doc.title) }}
-                      trigger={["click"]}
-                      placement="bottomRight"
-                    >
+                    {openingDocId === doc.docId ? (
+                      <LoadingOutlined className="document-icon" />
+                    ) : (
+                      <FileTextOutlined className="document-icon" />
+                    )}
+                    <span className="document-title">{doc.title || "未命名文档"}</span>
+                    <Dropdown menu={{ items: getDocNodeMenu(doc.docId) }} trigger={["click"]}>
                       <Button
                         type="text"
                         size="small"
@@ -523,28 +426,30 @@ export default function Sidebar({ items = [], children }: SidebarProps) {
                     </Dropdown>
                   </div>
                 ))}
+                {filteredDocs.length === 0 && (
+                  <div className="document-item">
+                    <span className="document-title">{docListStatus === "loading" ? "加载中..." : "暂无文档"}</span>
+                  </div>
+                )}
+                {docListStatus === "error" && docError && (
+                  <div className="document-item">
+                    <span className="document-title">{docError}</span>
+                  </div>
+                )}
               </div>
             </div>
           </div>
         </div>
       </div>
 
-      {/* 拖拽条（始终存在） */}
-      <div
-        className={`resizer ${isCollapsed ? "collapsed" : ""}`}
-        onMouseDown={isCollapsed ? undefined : startResizing}
-      >
-        <div className="split"></div>
-        <Tooltip
-          title={isCollapsed ? "展开侧边栏" : "折叠侧边栏"}
-          placement="right"
-        >
+      <div className={`resizer ${isCollapsed ? "collapsed" : ""}`} onMouseDown={startResizing}>
+        <div className="split" />
+        <Tooltip title={isCollapsed ? "展开侧边栏" : "折叠侧边栏"} placement="right">
           <button
             type="button"
             className="toggle-btn"
-            onClick={toggle}
+            onClick={toggleSidebar}
             aria-expanded={!isCollapsed}
-            aria-label={isCollapsed ? "Expand sidebar" : "Collapse sidebar"}
           >
             <svg
               className={`icon ${isCollapsed ? "collapsed" : ""}`}
@@ -564,7 +469,6 @@ export default function Sidebar({ items = [], children }: SidebarProps) {
           </button>
         </Tooltip>
       </div>
-
     </div>
   );
 }

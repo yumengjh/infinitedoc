@@ -33,6 +33,19 @@
   color: #6b7280;
 }
 
+.header-history-btn {
+  height: 26px;
+  padding: 0 8px;
+  margin-left: 4px;
+  color: #2563eb;
+  border-radius: 6px;
+}
+
+.header-history-btn:hover {
+  background: #eff6ff !important;
+  color: #1d4ed8 !important;
+}
+
 /* 右侧 */
 .header-right {
   display: flex;
@@ -90,4 +103,63 @@
 .btn.primary:hover {
   background: #16a34a !important;
   border-color: #16a34a !important;
+}
+
+.publish-permission-tip {
+  font-size: 12px;
+  color: #9ca3af;
+  margin-left: -2px;
+}
+
+.header-edit-btn {
+  min-width: 78px;
+  height: 32px;
+  padding: 0 14px;
+  border-radius: 8px;
+  font-weight: 500;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+}
+
+.header-edit-btn .ant-btn-loading-icon {
+  color: inherit;
+}
+
+.header-edit-btn-edit {
+  background: #ffffff;
+  border-color: #bfdbfe;
+  color: #1d4ed8;
+}
+
+.header-edit-btn-edit:hover {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1e40af !important;
+}
+
+.header-edit-btn-edit:active {
+  background: #dbeafe !important;
+  border-color: #60a5fa !important;
+  color: #1e3a8a !important;
+}
+
+.header-edit-btn-finish {
+  background: #ffffff;
+  border-color: #bbf7d0;
+  color: #15803d;
+}
+
+.header-edit-btn-finish:hover {
+  background: #f0fdf4 !important;
+  border-color: #86efac !important;
+  color: #166534 !important;
+}
+
+.header-edit-btn-finish:active {
+  background: #dcfce7 !important;
+  border-color: #4ade80 !important;
+  color: #14532d !important;
 }

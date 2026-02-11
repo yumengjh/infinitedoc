@@ -83,6 +83,15 @@ const normalizeError = (error: unknown): NormalizedApiError => {
       ? rawMessage.join("; ")
       : rawMessage || axiosErr.message || "Network Error";
 
+    // 调试日志：便于前端确认实际返回结构
+    // eslint-disable-next-line no-console
+    console.debug("[api_v1] axios error", {
+      status: axiosErr.response?.status,
+      code,
+      message,
+      data: axiosErr.response?.data,
+    });
+
     return {
       status: axiosErr.response?.status,
       code: code || undefined,
@@ -90,7 +99,8 @@ const normalizeError = (error: unknown): NormalizedApiError => {
       raw: error,
     };
   }
-
+  // eslint-disable-next-line no-console
+  console.debug("[api_v1] non-axios error", error);
   return {
     message: error instanceof Error ? error.message : "Unknown error",
     raw: error,
@@ -272,6 +282,8 @@ export const unwrap = async <T>(p: Promise<AxiosResponse<ApiEnvelope<T> | T>>): 
     const res = await p;
     return pickData(res);
   } catch (error) {
+    // eslint-disable-next-line no-console
+    console.debug("[api_v1] unwrap error", error);
     throw normalizeError(error);
   }
 };

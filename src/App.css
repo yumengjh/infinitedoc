@@ -86,6 +86,11 @@
   box-sizing: border-box;
 }
 
+.dashboard-main--no-header .dashboard-content,
+.dashboard-content--no-header {
+  padding-top: 0;
+}
+
 /* 当有 Toolbar 时，增加顶部 padding */
 .dashboard-main:has(.toolbar-container) .dashboard-content {
   padding-top: 96px; /* Header(56px) + Toolbar(40px) */
@@ -98,24 +103,25 @@
   padding: 0;
 }
 
+.dashboard-content--settings > * {
+  max-width: 100%;
+  min-height: 100%;
+}
+
+.dashboard-content--settings {
+  padding-bottom: 0;
+  justify-content: flex-start;
+  align-items: stretch;
+}
+
 /* 编辑器容器特殊处理，确保居中且不受 Sidebar 影响 */
 .dashboard-content .tiptap-shell {
-  width: 100%;
-  max-width: 1200px;
-  margin: 0 auto;
-  padding: 24px 32px 40px;
-  box-sizing: border-box;
   position: relative;
 }
 
 /* 针对特殊页面的处理 */
 .dashboard-content section {
   padding: 20px;
-}
-
-/* 针对编辑器页面的特殊处理 */
-.dashboard-content > div:not(section):not(.main-page) {
-  padding: 0; /* 编辑器不需要额外的内边距 */
 }
 
 /* 首页特殊处理 */
@@ -169,4 +175,3 @@
   }
   
 }
-
