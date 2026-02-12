@@ -38,7 +38,8 @@ export default function Header() {
   const [finishing, setFinishing] = useState(false);
   const [docMetaModalOpen, setDocMetaModalOpen] = useState(false);
 
-  const publishedHead = typeof currentDoc?.publishedHead === "number" ? currentDoc.publishedHead : 0;
+  const publishedHead =
+    typeof currentDoc?.publishedHead === "number" ? currentDoc.publishedHead : 0;
   const publishStatusLabel = publishedHead > 0 ? `已发布 v${publishedHead}` : "未发布";
   const userRole = (currentWorkspace?.userRole || "").toLowerCase();
   const canPublishByRole = !userRole || ["owner", "admin", "editor"].includes(userRole);
@@ -70,7 +71,8 @@ export default function Header() {
       message.error(latestError);
       return;
     }
-    const version = published?.publishedHead ?? useSessionStore.getState().currentDoc?.publishedHead;
+    const version =
+      published?.publishedHead ?? useSessionStore.getState().currentDoc?.publishedHead;
     if (typeof version === "number" && version > 0) {
       message.success(`发布成功，当前发布版本 v${version}`);
       return;
@@ -165,7 +167,9 @@ export default function Header() {
               {currentWorkspace?.name || "未选择工作空间"}
             </Tag>
             <Tag color={pendingCount > 0 ? "orange" : "default"}>Pending {pendingCount}</Tag>
-            {isDocPage && <Tag color={publishedHead > 0 ? "green" : "default"}>{publishStatusLabel}</Tag>}
+            {isDocPage && (
+              <Tag color={publishedHead > 0 ? "green" : "default"}>{publishStatusLabel}</Tag>
+            )}
             <Tooltip title="手动获取 Pending 数" placement="bottom">
               <Button
                 type="text"
@@ -193,7 +197,12 @@ export default function Header() {
           </Tooltip>
 
           <Tooltip title="分享" placement="bottom">
-            <Button type="text" icon={<ShareAltOutlined />} className="icon-btn" aria-label="share" />
+            <Button
+              type="text"
+              icon={<ShareAltOutlined />}
+              className="icon-btn"
+              aria-label="share"
+            />
           </Tooltip>
 
           {isDocPage && (
@@ -210,7 +219,10 @@ export default function Header() {
           )}
 
           {isDocPage && (
-            <Tooltip title={canPublishByRole ? "发布当前文档" : "当前角色无发布权限"} placement="bottom">
+            <Tooltip
+              title={canPublishByRole ? "发布当前文档" : "当前角色无发布权限"}
+              placement="bottom"
+            >
               <Button
                 type="default"
                 icon={<CloudUploadOutlined />}
@@ -225,7 +237,9 @@ export default function Header() {
               </Button>
             </Tooltip>
           )}
-          {isDocPage && !canPublishByRole && <span className="publish-permission-tip">当前角色无发布权限</span>}
+          {isDocPage && !canPublishByRole && (
+            <span className="publish-permission-tip">当前角色无发布权限</span>
+          )}
 
           {isDocPage && (
             <Tooltip title={isEditing ? "退出编辑" : "点击开始编辑"} placement="bottom">

@@ -1,12 +1,4 @@
-/* eslint-disable react-refresh/only-export-components */
-import {
-  createContext,
-  useCallback,
-  useContext,
-  useEffect,
-  useMemo,
-  type ReactNode,
-} from "react";
+import { createContext, useCallback, useContext, useEffect, useMemo, type ReactNode } from "react";
 import { DocumentEngine } from "../engine/engine";
 import { InMemoryStorage } from "../engine/storage";
 import type { DocID } from "../engine/types";
@@ -82,7 +74,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         createdBy: "u_1",
       });
     },
-    [workspaceId]
+    [workspaceId],
   );
 
   const documents = useMemo(() => {
@@ -136,7 +128,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
       syncDocMetaLocal(createdDoc);
       return createdDoc.docId;
     },
-    [createDoc, ensureLocalDocument, syncDocMetaLocal, workspaceId]
+    [createDoc, ensureLocalDocument, syncDocMetaLocal, workspaceId],
   );
 
   const switchDocument = useCallback(
@@ -146,7 +138,8 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         return;
       }
       const opened = await openDoc(nextDocId);
-      const targetTitle = opened?.title || docList.find((item) => item.docId === nextDocId)?.title || "未命名文档";
+      const targetTitle =
+        opened?.title || docList.find((item) => item.docId === nextDocId)?.title || "未命名文档";
       await ensureLocalDocument(nextDocId, targetTitle);
       if (opened) {
         syncDocMetaLocal(opened);
@@ -154,7 +147,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         setDoc(nextDocId);
       }
     },
-    [currentDoc, docId, docList, ensureLocalDocument, openDoc, setDoc, syncDocMetaLocal]
+    [currentDoc, docId, docList, ensureLocalDocument, openDoc, setDoc, syncDocMetaLocal],
   );
 
   const removeDocument = useCallback(
@@ -167,7 +160,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         setDoc(nextCurrent?.docId || null);
       }
     },
-    [docId, docList, setCurrentDoc, setDoc, setDocList]
+    [docId, docList, setCurrentDoc, setDoc, setDocList],
   );
 
   const updateDocumentTitle = useCallback(
@@ -177,7 +170,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
         syncDocMetaLocal(updated);
       }
     },
-    [renameDoc, syncDocMetaLocal]
+    [renameDoc, syncDocMetaLocal],
   );
 
   const initializeDocument = useCallback(
@@ -186,7 +179,7 @@ export const DocumentProvider = ({ children }: { children: ReactNode }) => {
       if (!found) return;
       await ensureLocalDocument(targetDocId, found.title || "未命名文档");
     },
-    [docList, ensureLocalDocument]
+    [docList, ensureLocalDocument],
   );
 
   return (

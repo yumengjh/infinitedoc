@@ -265,7 +265,15 @@
   overflow: auto;
   border-radius: 10px;
   padding: 14px 16px;
-  font-family: var(--app-doc-code-font, SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace) !important;
+  font-family: var(
+    --app-doc-code-font,
+    SFMono-Regular,
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    Courier,
+    monospace
+  ) !important;
   font-size: 13.5px;
   line-height: 1.65;
   border: 1px solid var(--doc-code-border);
@@ -293,7 +301,15 @@
   display: block;
   background: transparent !important;
   color: inherit;
-  font-family: var(--app-doc-code-font, SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace) !important;
+  font-family: var(
+    --app-doc-code-font,
+    SFMono-Regular,
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    Courier,
+    monospace
+  ) !important;
   white-space: pre;
   tab-size: 2;
 }
@@ -313,7 +329,15 @@
 }
 
 .tiptap-editor code:not(pre code):not(.shiki code):not(.shiki) {
-  font-family: var(--app-doc-code-font, SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace);
+  font-family: var(
+    --app-doc-code-font,
+    SFMono-Regular,
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    Courier,
+    monospace
+  );
   font-size: 0.88em;
   color: var(--doc-inline-code-color);
   background: var(--doc-inline-code-bg);
@@ -404,4 +428,3 @@
     --doc-main-side-padding: 4px;
   }
 }
-

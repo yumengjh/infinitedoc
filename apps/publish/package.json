@@ -6,10 +6,8 @@
     "dev": "nuxt dev --port 4300",
     "build": "nuxt build",
     "preview": "nuxt preview --port 4301",
-    "lint": "eslint . --max-warnings=0",
-    "lint:fix": "eslint . --fix",
-    "format": "prettier . --write",
-    "format:check": "prettier . --check"
+    "lint": "pnpm --dir ../.. lint:publish",
+    "lint:fix": "pnpm --dir ../.. exec eslint apps/publish --fix"
   },
   "dependencies": {
     "@shikijs/markdown-it": "^3.22.0",
@@ -19,14 +17,5 @@
     "nuxt": "^3.20.0",
     "shiki": "^3.22.0",
     "unocss": "^66.6.0"
-  },
-  "devDependencies": {
-    "@eslint/js": "^9.39.2",
-    "eslint": "^9.39.2",
-    "eslint-config-prettier": "^10.1.8",
-    "eslint-plugin-vue": "^10.7.0",
-    "globals": "^17.3.0",
-    "prettier": "^3.8.1",
-    "typescript-eslint": "^8.55.0"
   }
 }

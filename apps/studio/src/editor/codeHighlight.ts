@@ -55,7 +55,7 @@ export const getCodeThemeByMode = (mode: CodeThemeMode): string => {
 
 export const resolveCodeLanguageForShiki = (
   highlighter: ShikiHighlighter,
-  lang?: string
+  lang?: string,
 ): string => {
   const normalized = normalizeCodeLanguage(lang);
   const alias = highlighter.resolveLangAlias(normalized);

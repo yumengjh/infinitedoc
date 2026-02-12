@@ -11,7 +11,9 @@ import {
   type ShikiHighlighter,
 } from "./codeHighlight";
 
-export const SHIKI_CODE_BLOCK_PLUGIN_KEY = new PluginKey<DecorationSet>("shiki-code-block-highlight");
+export const SHIKI_CODE_BLOCK_PLUGIN_KEY = new PluginKey<DecorationSet>(
+  "shiki-code-block-highlight",
+);
 
 type CreateShikiCodeBlockExtensionOptions = {
   highlighter: ShikiHighlighter;
@@ -46,7 +48,7 @@ const buildDecorations = (
   doc: ProseMirrorNode,
   highlighter: ShikiHighlighter,
   getThemeMode: () => CodeThemeMode,
-  fallbackLanguage: string
+  fallbackLanguage: string,
 ): DecorationSet => {
   const decorations: Decoration[] = [];
   const theme = getCodeThemeByMode(getThemeMode());
@@ -65,7 +67,7 @@ const buildDecorations = (
       Decoration.node(pos, pos + node.nodeSize, {
         class: "tiptap-codeblock-node",
         "data-language": nodeLanguage || fallbackLanguage,
-      })
+      }),
     );
 
     if (!code.trim()) {
@@ -97,7 +99,7 @@ const buildDecorations = (
           Decoration.inline(from, to, {
             class: "tiptap-shiki-token",
             style,
-          })
+          }),
         );
       }
     }

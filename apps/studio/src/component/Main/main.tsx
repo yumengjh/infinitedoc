@@ -139,8 +139,12 @@ export default function MainPage() {
                   <FileTextOutlined className="document-row-icon" />
                 )}
                 <span className="document-row-title">{doc.title || "未命名文档"}</span>
-                <span className="document-row-path">{currentWorkspace?.name || "未选择工作空间"}</span>
-                <span className="document-row-date">{formatDate(doc.updatedAt || doc.createdAt)}</span>
+                <span className="document-row-path">
+                  {currentWorkspace?.name || "未选择工作空间"}
+                </span>
+                <span className="document-row-date">
+                  {formatDate(doc.updatedAt || doc.createdAt)}
+                </span>
                 <Dropdown menu={{ items: getDocMenu(doc.docId) }} trigger={["click"]}>
                   <Button
                     type="text"

@@ -87,7 +87,11 @@ const ownerId = computed(() => {
   return raw.trim();
 });
 
-const { data: ownerProfile, pending: ownerPending, refresh: refreshOwnerProfile } = await useAsyncData(
+const {
+  data: ownerProfile,
+  pending: ownerPending,
+  refresh: refreshOwnerProfile,
+} = await useAsyncData(
   () => `workspace-owner-${ownerId.value || "missing"}`,
   async () => {
     if (!ownerId.value) return null;

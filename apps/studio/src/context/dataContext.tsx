@@ -27,7 +27,5 @@ export const DataProvider = ({
 }) => {
   const mergedValue = value || defaultValue;
 
-  return (
-    <DataContext.Provider value={mergedValue}>{children}</DataContext.Provider>
-  );
+  return <DataContext.Provider value={mergedValue}>{children}</DataContext.Provider>;
 };

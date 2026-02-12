@@ -349,7 +349,12 @@ export default function WorkspacePage() {
                 <Input placeholder="例如：📁" allowClear />
               </Form.Item>
               <Space>
-                <Button type="primary" icon={<PlusOutlined />} loading={creating} onClick={() => void onCreateWorkspace()}>
+                <Button
+                  type="primary"
+                  icon={<PlusOutlined />}
+                  loading={creating}
+                  onClick={() => void onCreateWorkspace()}
+                >
                   创建并进入管理
                 </Button>
                 <Button onClick={() => createForm.resetFields()}>重置</Button>
@@ -392,11 +397,10 @@ export default function WorkspacePage() {
                       onClick={() => {
                         setSwitchingWorkspaceId(item.workspaceId);
                         setWorkspace(item.workspaceId);
-                        void loadDocListByWorkspace(item.workspaceId)
-                          .finally(() => {
-                            setSwitchingWorkspaceId(null);
-                            navigate(`/workspace/${item.workspaceId}`);
-                          });
+                        void loadDocListByWorkspace(item.workspaceId).finally(() => {
+                          setSwitchingWorkspaceId(null);
+                          navigate(`/workspace/${item.workspaceId}`);
+                        });
                       }}
                     >
                       管理
@@ -425,7 +429,9 @@ export default function WorkspacePage() {
                   <Button
                     icon={<ReloadOutlined />}
                     loading={workspaceDetailStatus === "loading"}
-                    onClick={() => currentWorkspaceId && void loadWorkspaceDetail(currentWorkspaceId)}
+                    onClick={() =>
+                      currentWorkspaceId && void loadWorkspaceDetail(currentWorkspaceId)
+                    }
                   >
                     刷新
                   </Button>
@@ -437,14 +443,20 @@ export default function WorkspacePage() {
                   </div>
                 )}
                 {currentWorkspace && (
-                  <Descriptions size="small" column={{ xs: 1, sm: 2, md: 3 }} style={{ marginBottom: 16 }}>
+                  <Descriptions
+                    size="small"
+                    column={{ xs: 1, sm: 2, md: 3 }}
+                    style={{ marginBottom: 16 }}
+                  >
                     <Descriptions.Item label="workspaceId">
                       <Typography.Text code>{currentWorkspace.workspaceId}</Typography.Text>
                     </Descriptions.Item>
                     <Descriptions.Item label="当前角色">
                       <Tag>{currentWorkspace.userRole || "未知"}</Tag>
                     </Descriptions.Item>
-                    <Descriptions.Item label="更新时间">{currentWorkspace.updatedAt || "-"}</Descriptions.Item>
+                    <Descriptions.Item label="更新时间">
+                      {currentWorkspace.updatedAt || "-"}
+                    </Descriptions.Item>
                   </Descriptions>
                 )}
 
@@ -494,12 +506,20 @@ export default function WorkspacePage() {
                 title="成员管理"
                 bordered={false}
                 extra={
-                  <Button icon={<ReloadOutlined />} loading={loadingMembers} onClick={() => currentWorkspaceId && void loadMembers(currentWorkspaceId)}>
+                  <Button
+                    icon={<ReloadOutlined />}
+                    loading={loadingMembers}
+                    onClick={() => currentWorkspaceId && void loadMembers(currentWorkspaceId)}
+                  >
                     刷新成员
                   </Button>
                 }
               >
-                <Form<InviteMemberFormValues> form={inviteForm} layout="vertical" initialValues={{ role: "editor" }}>
+                <Form<InviteMemberFormValues>
+                  form={inviteForm}
+                  layout="vertical"
+                  initialValues={{ role: "editor" }}
+                >
                   <Row gutter={12}>
                     <Col xs={24} md={8}>
                       <Form.Item label="用户 ID" name="userId">

@@ -227,13 +227,21 @@ const payloadToHeadingLevel = (payload: unknown, fallbackText: string): number =
   return 1;
 };
 
-const payloadToListMeta = (payload: unknown, fallbackText: string): { ordered: boolean; level: number; checked?: boolean } => {
+const payloadToListMeta = (
+  payload: unknown,
+  fallbackText: string,
+): { ordered: boolean; level: number; checked?: boolean } => {
   let ordered = false;
   let level = 0;
   let checked: boolean | undefined;
 
   if (payload && typeof payload === "object") {
-    const data = payload as { ordered?: unknown; level?: unknown; indent?: unknown; checked?: unknown };
+    const data = payload as {
+      ordered?: unknown;
+      level?: unknown;
+      indent?: unknown;
+      checked?: unknown;
+    };
     if (typeof data.ordered === "boolean") ordered = data.ordered;
     if (typeof data.level === "number") level = Math.max(0, Math.floor(data.level));
     if (typeof data.indent === "number") level = Math.max(0, Math.floor(data.indent));
@@ -336,12 +344,14 @@ const getBacktickFence = (text: string): string => {
 
 const applyInlineMarks = (
   rawText: string,
-  marks?: Array<{ type?: string; attrs?: Record<string, unknown> }>
+  marks?: Array<{ type?: string; attrs?: Record<string, unknown> }>,
 ): string => {
   let text = rawText.replace(/\u00a0/g, " ");
   if (!marks?.length) return text;
 
-  const normalizedMarks = marks.filter((mark) => typeof mark?.type === "string" && mark.type?.trim());
+  const normalizedMarks = marks.filter(
+    (mark) => typeof mark?.type === "string" && mark.type?.trim(),
+  );
   if (normalizedMarks.length === 0) return text;
 
   const codeMark = normalizedMarks.find((mark) => mark.type === "code");
@@ -396,7 +406,7 @@ const normalizeParagraphText = (node: EditorJsonNode): string => {
 const parseListNode = (
   node: EditorJsonNode,
   ordered: boolean,
-  level: number
+  level: number,
 ): NormalizedDocBlock[] => {
   const result: NormalizedDocBlock[] = [];
   const listItems = Array.isArray(node.content) ? node.content : [];
@@ -508,7 +518,7 @@ const parseTopLevelNode = (node: EditorJsonNode): NormalizedDocBlock[] => {
   if (node.type === "codeBlock") {
     const text = extractInlineText(node);
     const language = normalizeCodeLanguage(
-      typeof node.attrs?.language === "string" ? node.attrs.language : "text"
+      typeof node.attrs?.language === "string" ? node.attrs.language : "text",
     );
     return [
       {
@@ -621,7 +631,7 @@ const normalizedBlocksToHtml = (blocks: NormalizedDocBlock[]): string => {
     if (block.type === "code") {
       const language = normalizeCodeLanguage(block.language);
       html.push(
-        `<pre><code class="language-${escapeHtml(language)}">${escapeHtml(block.text)}</code></pre>`
+        `<pre><code class="language-${escapeHtml(language)}">${escapeHtml(block.text)}</code></pre>`,
       );
       index += 1;
       continue;
@@ -636,7 +646,7 @@ const normalizedBlocksToHtml = (blocks: NormalizedDocBlock[]): string => {
 
 export const areNormalizedBlocksEqual = (
   localBlock: NormalizedDocBlock,
-  remoteBlock: NormalizedDocBlock
+  remoteBlock: NormalizedDocBlock,
 ): boolean => {
   if (localBlock.type !== remoteBlock.type) return false;
   if ((localBlock.text || "").trim() !== (remoteBlock.text || "").trim()) return false;
@@ -648,13 +658,16 @@ export const areNormalizedBlocksEqual = (
   if (localBlock.type === "list_item") {
     return (
       Boolean(localBlock.ordered) === Boolean(remoteBlock.ordered) &&
-      Math.max(0, Math.floor(localBlock.level ?? 0)) === Math.max(0, Math.floor(remoteBlock.level ?? 0)) &&
+      Math.max(0, Math.floor(localBlock.level ?? 0)) ===
+        Math.max(0, Math.floor(remoteBlock.level ?? 0)) &&
       (localBlock.checked ?? null) === (remoteBlock.checked ?? null)
     );
   }
 
   if (localBlock.type === "code") {
-    return normalizeCodeLanguage(localBlock.language) === normalizeCodeLanguage(remoteBlock.language);
+    return (
+      normalizeCodeLanguage(localBlock.language) === normalizeCodeLanguage(remoteBlock.language)
+    );
   }
 
   return true;
@@ -709,7 +722,7 @@ export const editorJsonToNormalizedBlocks = (editorJson: unknown): NormalizedDoc
 };
 
 export const extractTopLevelBlocksFromContent = (
-  content: DocumentContent
+  content: DocumentContent,
 ): {
   rootBlockId: string | null;
   blocks: RemoteTopLevelBlock[];
@@ -739,7 +752,10 @@ export const extractTopLevelBlocksFromContent = (
   };
 };
 
-const walkTreeToBlocks = (node: DocumentContentTreeNode | undefined, blocks: NormalizedDocBlock[]) => {
+const walkTreeToBlocks = (
+  node: DocumentContentTreeNode | undefined,
+  blocks: NormalizedDocBlock[],
+) => {
   if (!node) return;
   if ((node.type || "").toLowerCase() !== "root") {
     blocks.push(normalizeRemoteBlock(node));
@@ -751,7 +767,7 @@ const walkTreeToBlocks = (node: DocumentContentTreeNode | undefined, blocks: Nor
 const walkTreeToFlatBlocks = (
   node: DocumentContentTreeNode | undefined,
   flatBlocks: FlatContentBlock[],
-  depth: number
+  depth: number,
 ) => {
   if (!node) return;
   const typeRaw = (node.type || "").toLowerCase();
@@ -788,7 +804,10 @@ export const contentTreeToMarkdown = (content: DocumentContent): string => {
   const blocks: NormalizedDocBlock[] = [];
   const tree = content.tree || undefined;
   walkTreeToBlocks(tree, blocks);
-  return blocks.map((block) => normalizedBlockToMarkdown(block)).join("\n\n").trim();
+  return blocks
+    .map((block) => normalizedBlockToMarkdown(block))
+    .join("\n\n")
+    .trim();
 };
 
 export const contentTreeToHtml = (content: DocumentContent): string => {

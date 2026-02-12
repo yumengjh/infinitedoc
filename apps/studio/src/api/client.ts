@@ -1,5 +1,5 @@
 import axios, {
-  AxiosError,
+  type AxiosError,
   type AxiosInstance,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
@@ -149,7 +149,7 @@ const createApiClient = (): AxiosInstance => {
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   /**
@@ -176,7 +176,7 @@ const createApiClient = (): AxiosInstance => {
       }
 
       return Promise.reject(normalizeError(error));
-    }
+    },
   );
 
   return client;
@@ -191,7 +191,7 @@ export const api = {
   get: <T = unknown>(
     url: string,
     params?: Record<string, unknown>,
-    config?: Partial<RetryableRequestConfig>
+    config?: Partial<RetryableRequestConfig>,
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return apiClient.get(url, { params, ...config });
   },
@@ -199,7 +199,7 @@ export const api = {
   post: <T = unknown>(
     url: string,
     data?: unknown,
-    config?: Partial<RetryableRequestConfig>
+    config?: Partial<RetryableRequestConfig>,
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return apiClient.post(url, data, config);
   },
@@ -207,7 +207,7 @@ export const api = {
   put: <T = unknown>(
     url: string,
     data?: unknown,
-    config?: Partial<RetryableRequestConfig>
+    config?: Partial<RetryableRequestConfig>,
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return apiClient.put(url, data, config);
   },
@@ -215,14 +215,14 @@ export const api = {
   patch: <T = unknown>(
     url: string,
     data?: unknown,
-    config?: Partial<RetryableRequestConfig>
+    config?: Partial<RetryableRequestConfig>,
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return apiClient.patch(url, data, config);
   },
 
   delete: <T = unknown>(
     url: string,
-    config?: Partial<RetryableRequestConfig>
+    config?: Partial<RetryableRequestConfig>,
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     return apiClient.delete(url, config);
   },
@@ -231,7 +231,7 @@ export const api = {
     url: string,
     file: File,
     additionalData?: Record<string, string | Blob>,
-    config?: Partial<RetryableRequestConfig>
+    config?: Partial<RetryableRequestConfig>,
   ): Promise<AxiosResponse<ApiResponse<T>>> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -260,4 +260,3 @@ export const unwrap = async <T>(p: Promise<AxiosResponse<ApiResponse<T>>>): Prom
     throw normalizeError(error);
   }
 };
-

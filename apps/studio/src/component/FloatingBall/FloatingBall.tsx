@@ -54,7 +54,7 @@ export function FloatingBall() {
     if (pointerIdRef.current !== null && ballRef.current) {
       try {
         ballRef.current.releasePointerCapture(pointerIdRef.current);
-      } catch (error) {
+      } catch (_error) {
         // 忽略释放失败
       }
     }

@@ -1,5 +1,5 @@
 import axios, {
-  AxiosError,
+  type AxiosError,
   type AxiosInstance,
   type AxiosResponse,
   type InternalAxiosRequestConfig,
@@ -84,7 +84,6 @@ const normalizeError = (error: unknown): NormalizedApiError => {
       : rawMessage || axiosErr.message || "Network Error";
 
     // 调试日志：便于前端确认实际返回结构
-    // eslint-disable-next-line no-console
     console.debug("[api_v1] axios error", {
       status: axiosErr.response?.status,
       code,
@@ -99,7 +98,6 @@ const normalizeError = (error: unknown): NormalizedApiError => {
       raw: error,
     };
   }
-  // eslint-disable-next-line no-console
   console.debug("[api_v1] non-axios error", error);
   return {
     message: error instanceof Error ? error.message : "Unknown error",
@@ -180,7 +178,7 @@ const createApiClient = (): AxiosInstance => {
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   client.interceptors.response.use(
@@ -204,7 +202,7 @@ const createApiClient = (): AxiosInstance => {
       }
 
       return Promise.reject(normalizeError(error));
-    }
+    },
   );
 
   return client;
@@ -216,7 +214,7 @@ export const api = {
   get: <T = unknown>(
     url: string,
     params?: Record<string, unknown>,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<AxiosResponse<ApiEnvelope<T>>> => {
     return apiClient.get(url, { params: cleanObject(params), ...config });
   },
@@ -224,33 +222,42 @@ export const api = {
   post: <T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<AxiosResponse<ApiEnvelope<T>>> => {
-    const body = typeof data === "object" && data !== null ? cleanObject(data as Record<string, unknown>) : data;
+    const body =
+      typeof data === "object" && data !== null
+        ? cleanObject(data as Record<string, unknown>)
+        : data;
     return apiClient.post(url, body, config);
   },
 
   put: <T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<AxiosResponse<ApiEnvelope<T>>> => {
-    const body = typeof data === "object" && data !== null ? cleanObject(data as Record<string, unknown>) : data;
+    const body =
+      typeof data === "object" && data !== null
+        ? cleanObject(data as Record<string, unknown>)
+        : data;
     return apiClient.put(url, body, config);
   },
 
   patch: <T = unknown>(
     url: string,
     data?: unknown,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<AxiosResponse<ApiEnvelope<T>>> => {
-    const body = typeof data === "object" && data !== null ? cleanObject(data as Record<string, unknown>) : data;
+    const body =
+      typeof data === "object" && data !== null
+        ? cleanObject(data as Record<string, unknown>)
+        : data;
     return apiClient.patch(url, body, config);
   },
 
   delete: <T = unknown>(
     url: string,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<AxiosResponse<ApiEnvelope<T>>> => {
     return apiClient.delete(url, config);
   },
@@ -259,7 +266,7 @@ export const api = {
     url: string,
     file: File,
     additionalData?: Record<string, string | Blob>,
-    config?: RequestConfig
+    config?: RequestConfig,
   ): Promise<AxiosResponse<ApiEnvelope<T>>> => {
     const formData = new FormData();
     formData.append("file", file);
@@ -282,7 +289,6 @@ export const unwrap = async <T>(p: Promise<AxiosResponse<ApiEnvelope<T> | T>>): 
     const res = await p;
     return pickData(res);
   } catch (error) {
-    // eslint-disable-next-line no-console
     console.debug("[api_v1] unwrap error", error);
     throw normalizeError(error);
   }

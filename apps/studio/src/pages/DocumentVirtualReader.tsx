@@ -45,10 +45,7 @@ type LayoutInfo = {
   totalHeight: number;
 };
 
-const buildLayout = (
-  items: FlatRenderBlock[],
-  sizeMap: Record<string, number>
-): LayoutInfo => {
+const buildLayout = (items: FlatRenderBlock[], sizeMap: Record<string, number>): LayoutInfo => {
   const offsets = new Array<number>(items.length);
   const heights = new Array<number>(items.length);
   let cursor = 0;
@@ -133,7 +130,7 @@ function ReaderRow({ item, top, html, onMeasured }: ReaderRowProps) {
 const renderItemHtml = (
   item: FlatRenderBlock,
   highlighter: ShikiHighlighter | null,
-  themeMode: CodeThemeMode
+  themeMode: CodeThemeMode,
 ): string => {
   if (!highlighter || item.normalized.type !== "code") {
     return item.html;

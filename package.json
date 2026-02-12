@@ -10,11 +10,45 @@
     "build": "pnpm -r --filter @infinitedoc/studio --filter @infinitedoc/publish build",
     "build:studio": "pnpm --filter @infinitedoc/studio build",
     "build:publish": "pnpm --filter @infinitedoc/publish build",
-    "lint": "pnpm -r --filter @infinitedoc/studio --filter @infinitedoc/publish lint",
-    "lint:studio": "pnpm --filter @infinitedoc/studio lint",
-    "lint:publish": "pnpm --filter @infinitedoc/publish lint",
+    "lint": "eslint apps",
+    "lint:fix": "eslint apps --fix",
+    "lint:strict": "eslint apps --max-warnings=0",
+    "lint:studio": "eslint apps/studio",
+    "lint:publish": "eslint apps/publish",
     "preview:studio": "pnpm --filter @infinitedoc/studio preview",
-    "preview:publish": "pnpm --filter @infinitedoc/publish preview"
+    "preview:publish": "pnpm --filter @infinitedoc/publish preview",
+    "format": "prettier . --write --cache --cache-strategy content --ignore-unknown",
+    "format:check": "prettier . --check --cache --cache-strategy content --ignore-unknown",
+    "format:check:ci": "prettier . --check --ignore-unknown",
+    "spellcheck": "cspell lint \"**/*\" --no-progress --gitignore --cache --cache-strategy content",
+    "spellcheck:ci": "cspell lint \"**/*\" --no-progress --gitignore",
+    "prepare": "husky",
+    "lint-staged": "lint-staged",
+    "commit": "git-cz"
+  },
+  "devDependencies": {
+    "@commitlint/cli": "^20.4.1",
+    "@commitlint/config-conventional": "^20.4.1",
+    "@eslint/js": "^9.39.2",
+    "commitizen": "^4.3.1",
+    "cspell": "^8.19.4",
+    "cz-git": "^1.12.0",
+    "eslint": "^9.39.2",
+    "eslint-config-prettier": "^10.1.8",
+    "eslint-plugin-react-hooks": "^7.0.1",
+    "eslint-plugin-react-refresh": "^0.4.26",
+    "eslint-plugin-vue": "^10.7.0",
+    "globals": "^17.3.0",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
+    "prettier": "^3.8.1",
+    "typescript-eslint": "^8.55.0",
+    "vue-eslint-parser": "^10.2.0"
+  },
+  "config": {
+    "commitizen": {
+      "path": "node_modules/cz-git"
+    }
   },
   "packageManager": "pnpm@10.19.0+sha512.c9fc7236e92adf5c8af42fd5bf1612df99c2ceb62f27047032f4720b33f8eacdde311865e91c411f2774f618d82f320808ecb51718bfa82c060c4ba7c76a32b8"
 }

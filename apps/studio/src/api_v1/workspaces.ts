@@ -31,7 +31,7 @@ export const createWorkspace = (payload: CreateWorkspacePayload, config?: Reques
 
 export const listWorkspaces = (
   query: PaginationQuery = { page: 1, pageSize: 20 },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<PaginatedResult<Workspace>>(api.get("/workspaces", { ...query }, config));
 };
@@ -43,7 +43,7 @@ export const getWorkspace = (workspaceId: string, config?: RequestConfig) => {
 export const updateWorkspace = (
   workspaceId: string,
   payload: UpdateWorkspacePayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<Workspace>(api.patch(`/workspaces/${workspaceId}`, payload, config));
 };
@@ -55,7 +55,7 @@ export const deleteWorkspace = (workspaceId: string, config?: RequestConfig) => 
 export const inviteMember = (
   workspaceId: string,
   payload: InviteMemberPayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<WorkspaceMember>(api.post(`/workspaces/${workspaceId}/members`, payload, config));
 };
@@ -63,10 +63,10 @@ export const inviteMember = (
 export const listMembers = (
   workspaceId: string,
   query: PaginationQuery = { page: 1, pageSize: 20 },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<PaginatedResult<WorkspaceMember>>(
-    api.get(`/workspaces/${workspaceId}/members`, { ...query }, config)
+    api.get(`/workspaces/${workspaceId}/members`, { ...query }, config),
   );
 };
 
@@ -74,10 +74,10 @@ export const updateMemberRole = (
   workspaceId: string,
   userId: string,
   payload: UpdateMemberRolePayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<WorkspaceMember>(
-    api.patch(`/workspaces/${workspaceId}/members/${userId}`, payload, config)
+    api.patch(`/workspaces/${workspaceId}/members/${userId}`, payload, config),
   );
 };
 

@@ -8,10 +8,7 @@
 
 <script setup lang="ts">
 import { computed } from "vue";
-import {
-  DEFAULT_WORKSPACE_PREFERENCE_SETTINGS,
-  useDocsApi,
-} from "~/composables/useDocsApi";
+import { DEFAULT_WORKSPACE_PREFERENCE_SETTINGS, useDocsApi } from "~/composables/useDocsApi";
 
 const { getWorkspacePreferenceSettings } = useDocsApi();
 

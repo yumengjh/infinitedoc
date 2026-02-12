@@ -18,4 +18,3 @@ export const getErrorMessage = (error: unknown): string => {
 };
 
 export type MemberColumnsRecord = WorkspaceMember;
-

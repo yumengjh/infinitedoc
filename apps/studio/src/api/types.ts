@@ -43,9 +43,9 @@ export interface Workspace {
   ownerId: string;
   createdAt: string;
   updatedAt: string;
-  status: 'active' | 'archived';
+  status: "active" | "archived";
   settings?: Record<string, unknown>;
-  userRole?: 'owner' | 'admin' | 'editor' | 'viewer';
+  userRole?: "owner" | "admin" | "editor" | "viewer";
 }
 
 export interface CreateWorkspaceRequest {
@@ -58,14 +58,14 @@ export interface UpdateWorkspaceRequest {
   name?: string;
   description?: string;
   icon?: string;
-  status?: 'active' | 'archived';
+  status?: "active" | "archived";
 }
 
 // 工作空间成员
 export interface WorkspaceMember {
   workspaceId: string;
   userId: string;
-  role: 'owner' | 'admin' | 'editor' | 'viewer';
+  role: "owner" | "admin" | "editor" | "viewer";
   joinedAt: string;
   invitedBy?: string;
   user?: {
@@ -79,7 +79,7 @@ export interface WorkspaceMember {
 
 export interface InviteMemberRequest {
   userId: string;
-  role: 'admin' | 'editor' | 'viewer'; // 不能邀请owner
+  role: "admin" | "editor" | "viewer"; // 不能邀请owner
 }
 
 // 文档相关
@@ -96,8 +96,8 @@ export interface Document {
   createdBy: string;
   updatedAt: string;
   updatedBy: string;
-  status: 'draft' | 'normal' | 'archived' | 'deleted';
-  visibility: 'private' | 'workspace' | 'public';
+  status: "draft" | "normal" | "archived" | "deleted";
+  visibility: "private" | "workspace" | "public";
   parentId?: string;
   sortOrder: number;
   viewCount: number;
@@ -111,7 +111,7 @@ export interface CreateDocumentRequest {
   title: string;
   icon?: string;
   cover?: string;
-  visibility?: 'private' | 'workspace' | 'public';
+  visibility?: "private" | "workspace" | "public";
   parentId?: string;
   tags?: string[];
   category?: string;
@@ -121,8 +121,8 @@ export interface UpdateDocumentRequest {
   title?: string;
   icon?: string;
   cover?: string;
-  status?: 'draft' | 'normal' | 'archived' | 'deleted';
-  visibility?: 'private' | 'workspace' | 'public';
+  status?: "draft" | "normal" | "archived" | "deleted";
+  visibility?: "private" | "workspace" | "public";
   parentId?: string;
   sortOrder?: number;
   tags?: string[];
@@ -158,7 +158,15 @@ export interface DocumentContent {
 }
 
 // 块相关类型（与engine/types.ts保持一致）
-export type BlockType = "root" | "paragraph" | "heading" | "listItem" | "code" | "quote" | "image" | `custom:${string}`;
+export type BlockType =
+  | "root"
+  | "paragraph"
+  | "heading"
+  | "listItem"
+  | "code"
+  | "quote"
+  | "image"
+  | `custom:${string}`;
 
 export interface BlockIdentity {
   _id: string;
@@ -223,7 +231,7 @@ export interface MoveBlockRequest {
 }
 
 export interface BatchBlockOperation {
-  type: 'create' | 'update' | 'delete' | 'move';
+  type: "create" | "update" | "delete" | "move";
   blockId?: string; // create时不需要
   data?: CreateBlockRequest | UpdateBlockContentRequest | MoveBlockRequest; // delete不需要data
 }
@@ -242,10 +250,10 @@ export interface DocumentRevision {
   createdAt: number;
   createdBy: string;
   message: string;
-  branch: 'draft' | 'published';
+  branch: "draft" | "published";
   patches: unknown[];
   rootBlockId: string;
-  source: 'editor' | 'api' | 'import';
+  source: "editor" | "api" | "import";
   opSummary?: unknown;
 }
 
@@ -320,7 +328,7 @@ export interface CreateCommentRequest {
 export interface SearchQuery {
   query: string;
   workspaceId?: string;
-  type?: 'doc' | 'block' | 'all';
+  type?: "doc" | "block" | "all";
   page?: number;
   pageSize?: number;
 }
@@ -328,13 +336,13 @@ export interface SearchQuery {
 export interface AdvancedSearchQuery {
   query: string;
   workspaceId?: string;
-  type?: 'doc' | 'block' | 'all';
+  type?: "doc" | "block" | "all";
   tags?: string[];
   startDate?: string;
   endDate?: string;
   createdBy?: string;
-  sortBy?: 'rank' | 'updatedAt' | 'createdAt';
-  sortOrder?: 'ASC' | 'DESC';
+  sortBy?: "rank" | "updatedAt" | "createdAt";
+  sortOrder?: "ASC" | "DESC";
   page?: number;
   pageSize?: number;
 }
@@ -354,7 +362,7 @@ export interface Asset {
   height?: number;
   thumbnail?: string;
   createdAt: string;
-  status: 'active' | 'deleted';
+  status: "active" | "deleted";
   refCount: number;
   refs: unknown[];
 }

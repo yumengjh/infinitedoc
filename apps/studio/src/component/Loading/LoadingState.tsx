@@ -5,10 +5,7 @@ type LoadingStateProps = {
   minHeight?: number | string;
 };
 
-export default function LoadingState({
-  tip = "正在加载...",
-  minHeight = 240,
-}: LoadingStateProps) {
+export default function LoadingState({ tip = "正在加载...", minHeight = 240 }: LoadingStateProps) {
   return (
     <div
       style={{

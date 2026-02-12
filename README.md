@@ -48,13 +48,53 @@ npm run dev:studio
 # 全量
 pnpm build
 pnpm lint
+pnpm lint:strict
+pnpm format:check
+pnpm spellcheck
 
 # 分项目
 pnpm build:studio
 pnpm build:publish
+pnpm lint:studio
+pnpm lint:publish
 
 pnpm --filter @infinitedoc/studio build
 pnpm --filter @infinitedoc/publish build
+```
+
+## 代码检查（ESLint）
+
+仓库在根目录统一维护企业级 ESLint Flat Config（`eslint.config.mjs`）：
+
+- 基础规则：`@eslint/js` + `typescript-eslint`
+- React 规则：`react-hooks` + `react-refresh`（用于 studio）
+- Vue 规则：`eslint-plugin-vue`（用于 publish）
+- 与 Prettier 对齐：`eslint-config-prettier`
+
+## 代码格式化（Prettier）
+
+仓库在根目录统一维护 Prettier 配置（`.prettierrc.json` + `.prettierignore`），并配合
+`.editorconfig` 统一缩进与换行规则：
+
+```bash
+# 执行格式化
+pnpm format
+
+# 仅检查格式（CI 推荐）
+pnpm format:check
+
+# CI 场景（不依赖本地缓存）
+pnpm format:check:ci
+```
+
+## 拼写检查（CSpell）
+
+```bash
+# 本地（带缓存）
+pnpm spellcheck
+
+# CI（不依赖缓存）
+pnpm spellcheck:ci
 ```
 
 ## 下一步

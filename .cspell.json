@@ -1,0 +1,35 @@
+{
+  "$schema": "https://raw.githubusercontent.com/streetsidesoftware/cspell/main/cspell.schema.json",
+  "version": "0.2",
+  "language": "en",
+  "useGitignore": true,
+  "allowCompoundWords": true,
+  "minWordLength": 4,
+  "dictionaryDefinitions": [
+    {
+      "name": "project-words",
+      "path": "./.cspell/project-words.txt",
+      "addWords": true
+    }
+  ],
+  "dictionaries": ["project-words"],
+  "ignorePaths": [
+    "**/node_modules/**",
+    "**/.pnpm-store/**",
+    "**/dist/**",
+    "**/.nuxt/**",
+    "**/.output/**",
+    "**/.nitro/**",
+    "**/.cache/**",
+    "**/coverage/**",
+    "**/.turbo/**",
+    "**/*.min.*",
+    "**/*.map",
+    "**/*.lock",
+    "**/.pnpm/**",
+    "pnpm-lock.yaml",
+    "**/.next/**",
+    "**/storybook-static/**"
+  ],
+  "ignoreRegExpList": ["/[\\u4E00-\\u9FFF]+/g"]
+}

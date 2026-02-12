@@ -146,7 +146,13 @@ export class DocumentEngine {
       indent: 0,
       collapsed: false,
       payload: rootPayload,
-      hash: this.sha256({ payload: rootPayload, parentId: rootBlockId, sortKey: rootSortKey, indent: 0, collapsed: false }),
+      hash: this.sha256({
+        payload: rootPayload,
+        parentId: rootBlockId,
+        sortKey: rootSortKey,
+        indent: 0,
+        collapsed: false,
+      }),
       plainText: "",
       refs: [],
     };
@@ -170,7 +176,7 @@ export class DocumentEngine {
   async updateDocumentMeta(
     docId: DocID,
     updatedBy: UserID,
-    patch: Partial<Pick<DocumentMeta, "title" | "status" | "visibility" | "publishedHead">>
+    patch: Partial<Pick<DocumentMeta, "title" | "status" | "visibility" | "publishedHead">>,
   ) {
     const doc = await this.mustGetDoc(docId);
     const now = this.now();
@@ -213,7 +219,12 @@ export class DocumentEngine {
 
     const parentId = params.parentId ?? doc.rootBlockId;
     if (parentId !== doc.rootBlockId) await this.mustGetBlock(parentId);
-    const { sortKey } = await this.computeSortKey(params.docId, parentId, params.afterBlockId ?? null, params.beforeBlockId ?? null);
+    const { sortKey } = await this.computeSortKey(
+      params.docId,
+      parentId,
+      params.afterBlockId ?? null,
+      params.beforeBlockId ?? null,
+    );
 
     const identity: BlockIdentity = {
       _id: blockId,
@@ -240,7 +251,13 @@ export class DocumentEngine {
       indent: params.indent ?? 0,
       collapsed: false,
       payload: params.payload,
-      hash: this.sha256({ payload: params.payload, parentId, sortKey, indent: params.indent ?? 0, collapsed: false }),
+      hash: this.sha256({
+        payload: params.payload,
+        parentId,
+        sortKey,
+        indent: params.indent ?? 0,
+        collapsed: false,
+      }),
       plainText,
       refs: [],
     };
@@ -334,7 +351,12 @@ export class DocumentEngine {
     await this.mustGetBlock(params.toParentId);
     const latest = await this.mustGetBlockVersion(params.blockId, block.latestVer);
 
-    const { sortKey } = await this.computeSortKey(params.docId, params.toParentId, params.afterBlockId ?? null, params.beforeBlockId ?? null);
+    const { sortKey } = await this.computeSortKey(
+      params.docId,
+      params.toParentId,
+      params.afterBlockId ?? null,
+      params.beforeBlockId ?? null,
+    );
 
     const now = this.now();
     const nextVer = block.latestVer + 1;
@@ -401,7 +423,11 @@ export class DocumentEngine {
     if (params.createVersion === false) {
       // Keep behavior consistent with "pending" mode: identity-level deletions are tracked as a no-op patch.
       // (Server side usually always versions deletions; remote adapter can ignore createVersion=false for delete.)
-      this.addPendingPatch(params.docId, { blockId: params.blockId, from: block.latestVer, to: block.latestVer });
+      this.addPendingPatch(params.docId, {
+        blockId: params.blockId,
+        from: block.latestVer,
+        to: block.latestVer,
+      });
     } else {
       // create a revision even for delete (so docVer changes)
       await this.commit(params.docId, params.deletedBy, {
@@ -412,7 +438,12 @@ export class DocumentEngine {
     }
   }
 
-  async updateBlockAuthor(params: { docId: DocID; blockId: BlockID; updatedBy: UserID; setCreatedBy?: UserID }) {
+  async updateBlockAuthor(params: {
+    docId: DocID;
+    blockId: BlockID;
+    updatedBy: UserID;
+    setCreatedBy?: UserID;
+  }) {
     const block = await this.mustGetBlock(params.blockId);
     if (block.docId !== params.docId) throw new Error("Block does not belong to doc");
     const now = this.now();
@@ -531,7 +562,7 @@ export class DocumentEngine {
       if (!byParent.has(v.parentId)) byParent.set(v.parentId, []);
       byParent.get(v.parentId)!.push(v);
     }
-    for (const [p, list] of byParent) {
+    for (const [_p, list] of byParent) {
       list.sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1));
     }
 
@@ -598,11 +629,14 @@ export class DocumentEngine {
   }
 
   async diffDocVersions(docId: DocID, fromDocVer: DocVer, toDocVer: DocVer) {
-    const [a, b] = await Promise.all([this.getDocState(docId, fromDocVer), this.getDocState(docId, toDocVer)]);
+    const [a, b] = await Promise.all([
+      this.getDocState(docId, fromDocVer),
+      this.getDocState(docId, toDocVer),
+    ]);
     return diffDocStates(a, b);
   }
 
-  async createSnapshot(docId: DocID, docVer: DocVer, createdBy?: UserID) {
+  async createSnapshot(docId: DocID, docVer: DocVer, _createdBy?: UserID) {
     const state = await this.getDocState(docId, docVer);
     const snap: DocSnapshot = {
       _id: `${docId}@snap@${docVer}`,
@@ -628,7 +662,7 @@ export class DocumentEngine {
       patches: DocRevisionPatch[];
       branch?: "draft" | "published";
       opSummary?: Record<string, number>;
-    }
+    },
   ): Promise<DocRevision> {
     const doc = await this.mustGetDoc(docId);
     const now = this.now();
@@ -688,7 +722,12 @@ export class DocumentEngine {
     return v;
   }
 
-  private async computeSortKey(docId: DocID, parentId: BlockID, afterBlockId: BlockID | null, beforeBlockId: BlockID | null) {
+  private async computeSortKey(
+    docId: DocID,
+    parentId: BlockID,
+    afterBlockId: BlockID | null,
+    beforeBlockId: BlockID | null,
+  ) {
     // naive: load current doc state head and find siblings under parent
     const state = await this.getDocState(docId);
     const siblings = Object.entries(state.blockVersionMap)
@@ -703,8 +742,12 @@ export class DocumentEngine {
     }
     sibVers.sort((a, b) => (a.sortKey < b.sortKey ? -1 : 1));
 
-    const a = afterBlockId ? sibVers.find((x) => x.blockId === afterBlockId)?.sortKey ?? null : null;
-    const b = beforeBlockId ? sibVers.find((x) => x.blockId === beforeBlockId)?.sortKey ?? null : null;
+    const a = afterBlockId
+      ? (sibVers.find((x) => x.blockId === afterBlockId)?.sortKey ?? null)
+      : null;
+    const b = beforeBlockId
+      ? (sibVers.find((x) => x.blockId === beforeBlockId)?.sortKey ?? null)
+      : null;
 
     if (!a && !b) {
       // append to end

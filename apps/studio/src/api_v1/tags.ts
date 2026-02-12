@@ -19,7 +19,7 @@ export const createTag = (payload: CreateTagPayload, config?: RequestConfig) => 
 
 export const listTags = (
   query: PaginationQuery & { workspaceId: string },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<PaginatedResult<Tag>>(api.get("/tags", { ...query }, config));
 };

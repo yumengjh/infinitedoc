@@ -33,7 +33,7 @@ const normalizedBlockToMarkdown = (block: NormalizedDocBlock): string => {
 };
 
 export const buildRemoteBlockPayload = (
-  block: NormalizedDocBlock
+  block: NormalizedDocBlock,
 ): { type: string; payload: Record<string, unknown>; plainText: string } => {
   const markdownText = normalizedBlockToMarkdown(block);
 
@@ -52,7 +52,7 @@ export const createRemoteBlock = async (
     parentId?: string;
     sortKey?: string;
     indent?: number;
-  }
+  },
 ) => {
   const normalized = buildRemoteBlockPayload(block);
   const res = await apiV1.blocks.createBlock({
@@ -67,10 +67,7 @@ export const createRemoteBlock = async (
   return res.blockId;
 };
 
-export const updateRemoteBlockContent = async (
-  blockId: string,
-  block: NormalizedDocBlock
-) => {
+export const updateRemoteBlockContent = async (blockId: string, block: NormalizedDocBlock) => {
   const normalized = buildRemoteBlockPayload(block);
   return apiV1.blocks.updateBlockContent(blockId, {
     payload: normalized.payload,
@@ -81,7 +78,7 @@ export const updateRemoteBlockContent = async (
 
 export const moveRemoteBlock = async (
   blockId: string,
-  payload: { parentId: string; sortKey: string; indent?: number }
+  payload: { parentId: string; sortKey: string; indent?: number },
 ) => {
   return apiV1.blocks.moveBlock(blockId, {
     ...payload,

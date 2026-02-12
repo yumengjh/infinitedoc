@@ -178,14 +178,15 @@
     const stack = [root];
     while (stack.length && deep < CAP) {
       const n = stack.pop();
-      deep += (n.childNodes ? n.childNodes.length : 0);
+      deep += n.childNodes ? n.childNodes.length : 0;
       if (n.children && n.children.length) {
         for (let i = 0; i < n.children.length; i++) stack.push(n.children[i]);
       }
     }
     state.domDeepCount = deep;
 
-    if (state.sampleStartAt != null) state.sample.domMax = Math.max(state.sample.domMax, state.domCount);
+    if (state.sampleStartAt != null)
+      state.sample.domMax = Math.max(state.sample.domMax, state.domCount);
   };
 
   // --- Memory (Chrome only) ---
@@ -263,7 +264,7 @@
 
       console.groupCollapsed(
         `%cPerf sample ${state.sampleWindowMs / 1000}s`,
-        "color:#9ae6b4;font-weight:bold;"
+        "color:#9ae6b4;font-weight:bold;",
       );
       console.log("container:", state.container || document);
       console.log("FPS min/avg/max:", fmt(s.fpsMin, 0), fmt(fpsAvg, 0), fmt(s.fpsMax, 0));
@@ -293,11 +294,18 @@
       state._logAt = tNow;
       console.log(
         "[PerfHUD]",
-        "FPS", fmt(state.fps, 0),
-        "| DOM", state.domCount,
-        "| LT", state.longTasks, "max", fmt(state.longTaskMaxMs, 1) + "ms",
-        "| ScrollMax", fmt(state.scrollFrameMaxMs, 1) + "ms",
-        "| Mem", state.memMB == null ? "—" : fmt(state.memUsedJSHeapMB, 1) + "MB"
+        "FPS",
+        fmt(state.fps, 0),
+        "| DOM",
+        state.domCount,
+        "| LT",
+        state.longTasks,
+        "max",
+        fmt(state.longTaskMaxMs, 1) + "ms",
+        "| ScrollMax",
+        fmt(state.scrollFrameMaxMs, 1) + "ms",
+        "| Mem",
+        state.memMB == null ? "—" : fmt(state.memUsedJSHeapMB, 1) + "MB",
       );
     }
 
@@ -363,7 +371,7 @@
       state.sampleStartAt = now();
       console.log(
         `%cSampling for ${state.sampleWindowMs / 1000}s... scroll & interact now.`,
-        "color:#90cdf4;font-weight:bold;"
+        "color:#90cdf4;font-weight:bold;",
       );
     }
 
@@ -394,7 +402,7 @@
       state.sampleStartAt = now();
       console.log(
         `%cSampling for ${state.sampleWindowMs / 1000}s...`,
-        "color:#90cdf4;font-weight:bold;"
+        "color:#90cdf4;font-weight:bold;",
       );
     },
     stop() {
@@ -406,9 +414,17 @@
   function cleanup() {
     state.running = false;
     window.removeEventListener("scroll", onScroll);
-    try { state.observer && state.observer.disconnect(); } catch {}
-    try { hud.remove(); } catch {}
-    try { delete window.__PerfHUD__; } catch { window.__PerfHUD__ = undefined; }
+    try {
+      state.observer && state.observer.disconnect();
+    } catch {}
+    try {
+      hud.remove();
+    } catch {}
+    try {
+      delete window.__PerfHUD__;
+    } catch {
+      window.__PerfHUD__ = undefined;
+    }
     console.log("%cPerfHUD stopped.", "color:#fbb6ce;font-weight:bold;");
   }
 
@@ -418,6 +434,6 @@
   requestAnimationFrame(rafLoop);
   console.log(
     "%cPerfHUD running. API: window.__PerfHUD__ { setContainer(el|null), sample(ms), stop() }",
-    "color:#9ae6b4;font-weight:bold;"
+    "color:#9ae6b4;font-weight:bold;",
   );
 })();

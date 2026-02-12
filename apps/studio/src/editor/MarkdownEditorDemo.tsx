@@ -31,15 +31,15 @@ export default function MarkdownEditorDemo() {
 
   // Create Quill instance once
   useEffect(() => {
-    if (!editorRef.current) return;
-    const quill = new Quill(editorRef.current, {
+    const editorEl = editorRef.current;
+    if (!editorEl) return;
+    const quill = new Quill(editorEl, {
       theme: "snow",
       modules: {
         toolbar: false,
         history: { delay: 1000, maxStack: 100, userOnly: true },
       },
     });
-    quill.root.innerHTML = markdown;
     const handleTextChange = () => {
       if (settingContent.current) return;
       const html = quill.root.innerHTML;
@@ -53,7 +53,7 @@ export default function MarkdownEditorDemo() {
       quill.off("text-change", handleTextChange);
       quill.disable();
       quillRef.current = null;
-      if (editorRef.current) editorRef.current.innerHTML = "";
+      editorEl.innerHTML = "";
       setEditor(null);
     };
   }, [setMarkdown, setEditor]);
@@ -118,11 +118,7 @@ export default function MarkdownEditorDemo() {
         </small>
       </div>
 
-      <div
-        ref={editorRef}
-        style={{ minHeight: 420 }}
-        aria-label="富文本编辑器"
-      />
+      <div ref={editorRef} style={{ minHeight: 420 }} aria-label="富文本编辑器" />
     </div>
   );
 }

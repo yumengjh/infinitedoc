@@ -48,11 +48,7 @@ export const login = (payload: LoginPayload, config?: RequestConfig) => {
 export const refresh = (refreshToken?: string, config?: RequestConfig) => {
   const token = refreshToken ?? tokenManager.getRefreshToken();
   return unwrap<AuthTokens>(
-    api.post(
-      "/auth/refresh",
-      { refreshToken: token },
-      withoutAuth(config)
-    )
+    api.post("/auth/refresh", { refreshToken: token }, withoutAuth(config)),
   );
 };
 
@@ -66,7 +62,7 @@ export const updateMyProfile = (payload: UpdateMyProfilePayload, config?: Reques
 
 export const getUserById = (userId: string, config?: RequestConfig) => {
   return unwrap<UserProfile>(
-    api.get(`/auth/users/${encodeURIComponent(userId)}`, undefined, config)
+    api.get(`/auth/users/${encodeURIComponent(userId)}`, undefined, config),
   );
 };
 

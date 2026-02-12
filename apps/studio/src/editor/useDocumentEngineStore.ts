@@ -21,7 +21,11 @@ type Actions = {
   init: (docId: DocID, engine: any) => Promise<void>;
   switchDocument: (docId: DocID, engine: any) => Promise<void>;
   ensureBlock: (engine: any) => Promise<string>;
-  hydrateRemoteDocument: (payload: { docId: DocID; markdown: string; docVer?: number | null }) => void;
+  hydrateRemoteDocument: (payload: {
+    docId: DocID;
+    markdown: string;
+    docVer?: number | null;
+  }) => void;
   setMarkdown: (text: string) => void;
   setEditor: (editor: AnyEditor | null) => void;
   refresh: (engine: any) => Promise<void>;
@@ -29,8 +33,7 @@ type Actions = {
   reset: () => void;
 };
 
-const initialContent =
-  "";
+const initialContent = "";
 
 function extractFirstBlockText(tree: RenderNode | null): string {
   if (!tree) return "";
@@ -63,7 +66,7 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
     if (state.initialized && state.docId === docId) {
       return;
     }
-    
+
     try {
       // 检查文档是否已存在，如果不存在则创建初始内容
       let doc = await engine.getDocument(docId);
@@ -71,12 +74,12 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
         await engine.createDocument({ docId, title: "新文档", createdBy: "u_1" });
         doc = await engine.getDocument(docId);
       }
-      
+
       // 加载文档树
       const tree = await engine.getRenderedTree(docId);
       let blockId: string | null = null;
       let content = initialContent; // 默认内容
-      
+
       // 如果文档已有内容，从树中提取
       if (tree.children.length > 0) {
         // 找到第一个有内容的块
@@ -93,30 +96,35 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
           }
         }
       }
-      
+
       // 如果文档没有内容块，创建一个
       if (!blockId || tree.children.length === 0) {
         const block = await engine.createBlock({
           docId,
           type: "paragraph",
           createdBy: "u_1",
-          payload: { schema: { type: "paragraph", ver: 1 }, body: { richText: { format: "html", source: initialContent } } },
+          payload: {
+            schema: { type: "paragraph", ver: 1 },
+            body: { richText: { format: "html", source: initialContent } },
+          },
         });
         blockId = block.block._id;
         content = initialContent;
       }
-      
+
       const updatedTree = await engine.getRenderedTree(docId);
-      const versions = (await engine.listDocVersions(docId, 50)).sort((a: DocRevision, b: DocRevision) => a.docVer - b.docVer);
-      
+      const versions = (await engine.listDocVersions(docId, 50)).sort(
+        (a: DocRevision, b: DocRevision) => a.docVer - b.docVer,
+      );
+
       // 再次检查，避免并发初始化
       const currentState = get();
       if (currentState.initialized && currentState.docId === docId) {
         return;
       }
-      
+
       console.log(`[init] Setting markdown for doc ${docId}:`, content.substring(0, 100));
-      
+
       set({
         docId,
         blockId,
@@ -127,10 +135,15 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
         versions,
         initialized: true,
       });
-      
+
       // 验证设置是否成功
       const afterSet = get();
-      console.log(`[init] After set, markdown is:`, afterSet.markdown.substring(0, 100), `docId:`, afterSet.docId);
+      console.log(
+        `[init] After set, markdown is:`,
+        afterSet.markdown.substring(0, 100),
+        `docId:`,
+        afterSet.docId,
+      );
     } catch (error) {
       console.error("Failed to initialize document:", error);
     }
@@ -149,7 +162,7 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
       historyPreviewHtml: "",
       initialized: false,
     });
-    
+
     // 初始化新文档（会从文档中加载实际内容到 markdown）
     await get().init(docId, engine);
   },
@@ -175,10 +188,12 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
   async refresh(engine: any) {
     const { docId } = get();
     if (!docId || !engine) return;
-    
+
     const doc = await engine.getDocument(docId);
     const tree = await engine.getRenderedTree(docId);
-    const versions = (await engine.listDocVersions(docId, 50)).sort((a: DocRevision, b: DocRevision) => a.docVer - b.docVer);
+    const versions = (await engine.listDocVersions(docId, 50)).sort(
+      (a: DocRevision, b: DocRevision) => a.docVer - b.docVer,
+    );
     set((state) => ({
       docVer: doc?.head ?? 0,
       tree,
@@ -190,7 +205,7 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
   async loadVersionPreview(engine: any, ver: number) {
     const { docId } = get();
     if (!docId || !engine) return;
-    
+
     const tree = await engine.getRenderedTree(docId, ver);
     const text = extractFirstBlockText(tree) ?? "";
     const looksLikeHtml = /<\/?[a-z][\s\S]*>/i.test(text);
@@ -201,14 +216,17 @@ export const useDocumentEngineStore = create<State & Actions>((set, get) => ({
   async ensureBlock(engine: any) {
     const { blockId, docId, markdown } = get();
     if (!docId || !engine) throw new Error("Document not initialized");
-    
+
     if (blockId) return blockId;
-    
+
     const block = await engine.createBlock({
       docId,
       type: "paragraph",
       createdBy: "u_1",
-      payload: { schema: { type: "paragraph", ver: 1 }, body: { richText: { format: "html", source: markdown } } },
+      payload: {
+        schema: { type: "paragraph", ver: 1 },
+        body: { richText: { format: "html", source: markdown } },
+      },
     });
     set({ blockId: block.block._id });
     return block.block._id;

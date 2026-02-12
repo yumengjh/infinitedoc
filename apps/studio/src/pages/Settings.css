@@ -103,7 +103,15 @@
 }
 
 .settings-font-preview {
-  font-family: var(--app-doc-code-font, SFMono-Regular, Consolas, "Liberation Mono", Menlo, Courier, monospace);
+  font-family: var(
+    --app-doc-code-font,
+    SFMono-Regular,
+    Consolas,
+    "Liberation Mono",
+    Menlo,
+    Courier,
+    monospace
+  );
   font-size: 12px;
   word-break: break-all;
 }

@@ -39,7 +39,10 @@ function AppContent() {
         "/",
       );
     };
-    const walk = (routes: AppRoute[], parentPath = ""): Array<{
+    const walk = (
+      routes: AppRoute[],
+      parentPath = "",
+    ): Array<{
       path: string;
       showSidebar?: boolean;
       showHeader?: boolean;
@@ -50,13 +53,16 @@ function AppContent() {
           : route.path
             ? joinPath(parentPath, route.path)
             : parentPath || "/";
-        const self = route.path || route.index
-          ? [{
-              path: currentPath,
-              showSidebar: route.showSidebar,
-              showHeader: route.showHeader,
-            }]
-          : [];
+        const self =
+          route.path || route.index
+            ? [
+                {
+                  path: currentPath,
+                  showSidebar: route.showSidebar,
+                  showHeader: route.showHeader,
+                },
+              ]
+            : [];
         if (!route.children?.length) return self;
         return [...self, ...walk(route.children, currentPath)];
       });
@@ -65,7 +71,7 @@ function AppContent() {
   }, []);
   const currentRoute = useMemo(() => {
     return routeMetaList.find((route) =>
-      Boolean(matchPath({ path: route.path, end: true }, location.pathname))
+      Boolean(matchPath({ path: route.path, end: true }, location.pathname)),
     );
   }, [location.pathname, routeMetaList]);
   const showSidebar = showShell && Boolean(currentRoute?.showSidebar);
@@ -73,23 +79,18 @@ function AppContent() {
   const showToolbar = showHeader && showShell && isEditing;
   const isSettingsRoute = Boolean(showShell && location.pathname.startsWith("/settings"));
 
-  const renderRoutes = (
-    routes: AppRoute[],
-    parentRequiresAuth = false,
-  ): ReactNode => {
+  const renderRoutes = (routes: AppRoute[], parentRequiresAuth = false): ReactNode => {
     return routes.map((route) => {
       const requiresAuth = !route.isPublic;
       const shouldWrapWithAuth = !parentRequiresAuth && requiresAuth;
-      const element = shouldWrapWithAuth ? <RequireAuth>{route.element}</RequireAuth> : route.element;
+      const element = shouldWrapWithAuth ? (
+        <RequireAuth>{route.element}</RequireAuth>
+      ) : (
+        route.element
+      );
       const nextParentRequiresAuth = parentRequiresAuth || requiresAuth;
       if (route.index) {
-        return (
-          <Route
-            key={route.key}
-            index
-            element={element}
-          />
-        );
+        return <Route key={route.key} index element={element} />;
       }
       return (
         <Route key={route.key} path={route.path} element={element}>
@@ -115,27 +116,27 @@ function AppContent() {
     if (typeof document === "undefined") return;
     document.documentElement.style.setProperty(
       "--app-reader-width",
-      `${effectiveSettings.reader.contentWidth}px`
+      `${effectiveSettings.reader.contentWidth}px`,
     );
     document.documentElement.style.setProperty(
       "--app-editor-width",
-      `${effectiveSettings.editor.contentWidth}px`
+      `${effectiveSettings.editor.contentWidth}px`,
     );
     document.documentElement.style.setProperty(
       "--app-reader-font-size",
-      `${effectiveSettings.reader.fontSize}px`
+      `${effectiveSettings.reader.fontSize}px`,
     );
     document.documentElement.style.setProperty(
       "--app-editor-font-size",
-      `${effectiveSettings.editor.fontSize}px`
+      `${effectiveSettings.editor.fontSize}px`,
     );
     document.documentElement.style.setProperty(
       "--app-doc-code-font",
-      effectiveSettings.advanced.codeFontFamily
+      effectiveSettings.advanced.codeFontFamily,
     );
     document.documentElement.style.setProperty(
       "--app-doc-list-spacing",
-      effectiveSettings.advanced.compactList ? "0px" : "8px"
+      effectiveSettings.advanced.compactList ? "0px" : "8px",
     );
   }, [effectiveSettings]);
 

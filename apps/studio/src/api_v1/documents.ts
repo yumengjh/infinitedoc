@@ -90,7 +90,7 @@ export const getDocument = (docId: string, config?: RequestConfig) => {
 export const getDocumentContent = (
   docId: string,
   query: DocumentContentQuery = {},
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<DocumentContent>(api.get(`/documents/${docId}/content`, { ...query }, config));
 };
@@ -98,7 +98,7 @@ export const getDocumentContent = (
 export const updateDocument = (
   docId: string,
   payload: UpdateDocumentPayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<DocumentMeta>(api.patch(`/documents/${docId}`, payload, config));
 };
@@ -110,7 +110,7 @@ export const publishDocument = (docId: string, config?: RequestConfig) => {
 export const moveDocument = (
   docId: string,
   payload: MoveDocumentPayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<void>(api.post(`/documents/${docId}/move`, payload, config));
 };
@@ -122,15 +122,17 @@ export const deleteDocument = (docId: string, config?: RequestConfig) => {
 export const getRevisions = (
   docId: string,
   query: PaginationQuery = { page: 1, pageSize: 20 },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
-  return unwrap<PaginatedResult<DocumentRevision>>(api.get(`/documents/${docId}/revisions`, { ...query }, config));
+  return unwrap<PaginatedResult<DocumentRevision>>(
+    api.get(`/documents/${docId}/revisions`, { ...query }, config),
+  );
 };
 
 export const getDiff = (
   docId: string,
   params: { fromVer: number; toVer: number },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<DocumentDiff>(api.get(`/documents/${docId}/diff`, { ...params }, config));
 };
@@ -138,7 +140,7 @@ export const getDiff = (
 export const revertDocument = (
   docId: string,
   payload: RevertDocumentPayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<void>(api.post(`/documents/${docId}/revert`, payload, config));
 };
@@ -150,13 +152,15 @@ export const createSnapshot = (docId: string, config?: RequestConfig) => {
 export const commitDocument = (
   docId: string,
   payload: CommitDocumentPayload = {},
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<void>(api.post(`/documents/${docId}/commit`, payload, config));
 };
 
 export const getPendingVersions = (docId: string, config?: RequestConfig) => {
-  return unwrap<PendingVersions>(api.get(`/documents/${docId}/pending-versions`, undefined, config));
+  return unwrap<PendingVersions>(
+    api.get(`/documents/${docId}/pending-versions`, undefined, config),
+  );
 };
 
 export const documentApi = {

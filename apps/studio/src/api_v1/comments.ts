@@ -34,7 +34,7 @@ export const getComment = (commentId: string, config?: RequestConfig) => {
 export const updateComment = (
   commentId: string,
   payload: UpdateCommentPayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<Comment>(api.patch(`/comments/${commentId}`, payload, config));
 };

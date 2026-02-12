@@ -97,17 +97,83 @@ const orderedListTypeItems = [
 const defaultColor = "#000000";
 const solidColors = [
   // 灰色系列
-  ["#000000", "#434343", "#666666", "#999999", "#B7B7B7", "#CCCCCC", "#D9D9D9", "#EFEFEF", "#F3F3F3", "#FFFFFF"],
+  [
+    "#000000",
+    "#434343",
+    "#666666",
+    "#999999",
+    "#B7B7B7",
+    "#CCCCCC",
+    "#D9D9D9",
+    "#EFEFEF",
+    "#F3F3F3",
+    "#FFFFFF",
+  ],
   // 红色系列
-  ["#980000", "#FF0000", "#FF9900", "#FFFF00", "#00FF00", "#00FFFF", "#4A86E8", "#0000FF", "#9900FF", "#FF00FF"],
+  [
+    "#980000",
+    "#FF0000",
+    "#FF9900",
+    "#FFFF00",
+    "#00FF00",
+    "#00FFFF",
+    "#4A86E8",
+    "#0000FF",
+    "#9900FF",
+    "#FF00FF",
+  ],
   // 橙色系列
-  ["#E6B8AF", "#F4CCCC", "#FCE5CD", "#FFF2CC", "#D9EAD3", "#D0E0E3", "#C9DAF8", "#CFE2F3", "#D9D2E9", "#EAD1DC"],
+  [
+    "#E6B8AF",
+    "#F4CCCC",
+    "#FCE5CD",
+    "#FFF2CC",
+    "#D9EAD3",
+    "#D0E0E3",
+    "#C9DAF8",
+    "#CFE2F3",
+    "#D9D2E9",
+    "#EAD1DC",
+  ],
   // 黄色系列
-  ["#DD7E6B", "#EA9999", "#F9CB9C", "#FFE599", "#B6D7A8", "#A2C4C9", "#A4C2F4", "#9FC5E8", "#B4A7D6", "#D5A6BD"],
+  [
+    "#DD7E6B",
+    "#EA9999",
+    "#F9CB9C",
+    "#FFE599",
+    "#B6D7A8",
+    "#A2C4C9",
+    "#A4C2F4",
+    "#9FC5E8",
+    "#B4A7D6",
+    "#D5A6BD",
+  ],
   // 绿色系列
-  ["#CC4125", "#E06666", "#F6B26B", "#FFD966", "#93C47D", "#76A5AF", "#6D9EEB", "#6FA8DC", "#8E7CC3", "#C27BA0"],
+  [
+    "#CC4125",
+    "#E06666",
+    "#F6B26B",
+    "#FFD966",
+    "#93C47D",
+    "#76A5AF",
+    "#6D9EEB",
+    "#6FA8DC",
+    "#8E7CC3",
+    "#C27BA0",
+  ],
   // 蓝色系列
-  ["#A61C00", "#CC0000", "#E69138", "#F1C232", "#6AA84F", "#45818E", "#3C78D8", "#3D85C6", "#674EA7", "#A64D79"],
+  [
+    "#A61C00",
+    "#CC0000",
+    "#E69138",
+    "#F1C232",
+    "#6AA84F",
+    "#45818E",
+    "#3C78D8",
+    "#3D85C6",
+    "#674EA7",
+    "#A64D79",
+  ],
 ];
 
 // 渐变色
@@ -153,7 +219,7 @@ export default function Toolbar() {
     const { from, to } = tiptap.state.selection;
     const selectedText = tiptap.state.doc.textBetween(from, to);
     const existingLink = tiptap.getAttributes("link");
-    
+
     setLinkValue(existingLink.href || selectedText || "");
     setLinkModalOpen(true);
   };
@@ -161,7 +227,7 @@ export default function Toolbar() {
   const applyLink = () => {
     if (!tiptap) return;
     const url = linkValue.trim();
-    
+
     if (url) {
       // 如果 URL 不包含协议，自动添加 https://
       const href = url.match(/^https?:\/\//) ? url : `https://${url}`;
@@ -170,7 +236,7 @@ export default function Toolbar() {
       // 如果 URL 为空，移除链接
       tiptap.chain().focus().unsetLink().run();
     }
-    
+
     setLinkModalOpen(false);
     setLinkValue("");
   };
@@ -282,7 +348,11 @@ export default function Toolbar() {
     },
     "text-align": (key: string) => {
       if (!tiptap) return;
-      tiptap.chain().focus().setTextAlign(key as "left" | "center" | "right" | "justify").run();
+      tiptap
+        .chain()
+        .focus()
+        .setTextAlign(key as "left" | "center" | "right" | "justify")
+        .run();
     },
     "ordered-list": (key: string) => {
       if (!tiptap) return;
@@ -307,42 +377,48 @@ export default function Toolbar() {
   };
 
   // 处理颜色选择（带防抖）
-  const handleColorSelect = useCallback((color: string) => {
-    if (!tiptap) return;
-    
-    // 立即更新 UI，让用户看到颜色变化
-    setSelectedColor(color);
-    
-    // 清除之前的定时器
-    if (colorSelectTimeoutRef.current) {
-      clearTimeout(colorSelectTimeoutRef.current);
-    }
-    
-    // 设置新的防抖定时器（300ms）
-    colorSelectTimeoutRef.current = window.setTimeout(() => {
-      tiptap.chain().focus().setColor(color).run();
-    }, 300);
-  }, [tiptap]);
-  
+  const handleColorSelect = useCallback(
+    (color: string) => {
+      if (!tiptap) return;
+
+      // 立即更新 UI，让用户看到颜色变化
+      setSelectedColor(color);
+
+      // 清除之前的定时器
+      if (colorSelectTimeoutRef.current) {
+        clearTimeout(colorSelectTimeoutRef.current);
+      }
+
+      // 设置新的防抖定时器（300ms）
+      colorSelectTimeoutRef.current = window.setTimeout(() => {
+        tiptap.chain().focus().setColor(color).run();
+      }, 300);
+    },
+    [tiptap],
+  );
+
   // 处理背景颜色选择（带防抖）
-  const handleBgColorSelect = useCallback((color: string) => {
-    if (!tiptap) return;
-    
-    // 立即更新 UI，让用户看到颜色变化
-    setSelectedBgColor(color);
-    
-    // 清除之前的定时器
-    if (bgColorSelectTimeoutRef.current) {
-      clearTimeout(bgColorSelectTimeoutRef.current);
-    }
-    
-    // 设置新的防抖定时器（300ms）
-    bgColorSelectTimeoutRef.current = window.setTimeout(() => {
-      // 使用 highlight 扩展来设置背景颜色
-      tiptap.chain().focus().toggleHighlight({ color }).run();
-    }, 300);
-  }, [tiptap]);
-  
+  const handleBgColorSelect = useCallback(
+    (color: string) => {
+      if (!tiptap) return;
+
+      // 立即更新 UI，让用户看到颜色变化
+      setSelectedBgColor(color);
+
+      // 清除之前的定时器
+      if (bgColorSelectTimeoutRef.current) {
+        clearTimeout(bgColorSelectTimeoutRef.current);
+      }
+
+      // 设置新的防抖定时器（300ms）
+      bgColorSelectTimeoutRef.current = window.setTimeout(() => {
+        // 使用 highlight 扩展来设置背景颜色
+        tiptap.chain().focus().toggleHighlight({ color }).run();
+      }, 300);
+    },
+    [tiptap],
+  );
+
   // 组件卸载时清除定时器
   useEffect(() => {
     return () => {
@@ -359,7 +435,6 @@ export default function Toolbar() {
   const handleGradientSelect = (gradientId: string) => {
     message.info(`渐变色选择功能暂未实现。选择的渐变: ${gradientId}`);
   };
-
 
   const isActive = (id: string): boolean => {
     if (!tiptap) return false;
@@ -422,7 +497,11 @@ export default function Toolbar() {
     { key: "left", label: "左对齐", icon: <AlignLeftOutlined /> },
     { key: "center", label: "居中", icon: <AlignCenterOutlined /> },
     { key: "right", label: "右对齐", icon: <AlignRightOutlined /> },
-    { key: "justify", label: "两端对齐", icon: <AlignLeftOutlined style={{ transform: "scaleX(-1)" }} /> },
+    {
+      key: "justify",
+      label: "两端对齐",
+      icon: <AlignLeftOutlined style={{ transform: "scaleX(-1)" }} />,
+    },
   ].map((item) => ({
     key: item.key,
     label: item.label,
@@ -434,14 +513,19 @@ export default function Toolbar() {
     if (!tiptap) {
       return { label: "左对齐", icon: <AlignLeftOutlined />, key: "left" };
     }
-    const align = (tiptap.getAttributes("paragraph")?.textAlign || tiptap.getAttributes("heading")?.textAlign || "left") as string;
+    const align = (tiptap.getAttributes("paragraph")?.textAlign ||
+      tiptap.getAttributes("heading")?.textAlign ||
+      "left") as string;
     const alignMap: Record<string, { label: string; icon: ReactNode }> = {
       left: { label: "左对齐", icon: <AlignLeftOutlined /> },
       center: { label: "居中", icon: <AlignCenterOutlined /> },
       right: { label: "右对齐", icon: <AlignRightOutlined /> },
-      justify: { label: "两端对齐", icon: <AlignLeftOutlined style={{ transform: "scaleX(-1)" }} /> },
+      justify: {
+        label: "两端对齐",
+        icon: <AlignLeftOutlined style={{ transform: "scaleX(-1)" }} />,
+      },
     };
-    return { ...alignMap[align] || alignMap.left, key: align };
+    return { ...(alignMap[align] || alignMap.left), key: align };
   };
 
   // 获取当前有序列表编号方式
@@ -489,10 +573,7 @@ export default function Toolbar() {
         content: (
           <span className="dropdown-icon-text">
             <EditOutlined />
-            <span 
-              className="text-color-icon" 
-              style={{ color: selectedColor }}
-            >
+            <span className="text-color-icon" style={{ color: selectedColor }}>
               A
             </span>
           </span>
@@ -505,10 +586,7 @@ export default function Toolbar() {
         content: (
           <span className="dropdown-icon-text">
             <BgColorsOutlined />
-            <span 
-              className="bg-color-icon" 
-              style={{ color: selectedBgColor }}
-            >
+            <span className="bg-color-icon" style={{ color: selectedBgColor }}>
               A
             </span>
           </span>
@@ -533,9 +611,8 @@ export default function Toolbar() {
           <span className="dropdown-icon-text">
             <OrderedListOutlined />
             <span className="text-label">
-              {orderedListTypeItems.find(
-                (item) => item.key === getCurrentOrderedListType()
-              )?.description || "数字"}
+              {orderedListTypeItems.find((item) => item.key === getCurrentOrderedListType())
+                ?.description || "数字"}
             </span>
           </span>
         ),
@@ -585,10 +662,16 @@ export default function Toolbar() {
                                 {alignItems.map((alignItem) => {
                                   const active = alignItem.key === current;
                                   return (
-                                    <Tooltip key={alignItem.key} title={alignItem.label} placement="bottom">
+                                    <Tooltip
+                                      key={alignItem.key}
+                                      title={alignItem.label}
+                                      placement="bottom"
+                                    >
                                       <button
                                         type="button"
-                                        className={active ? "align-menu-btn is-active" : "align-menu-btn"}
+                                        className={
+                                          active ? "align-menu-btn is-active" : "align-menu-btn"
+                                        }
                                         onClick={(e) => {
                                           e.preventDefault();
                                           e.stopPropagation();
@@ -614,7 +697,11 @@ export default function Toolbar() {
                             return {
                               key: levelItem.key,
                               label: (
-                                <div className={active ? "heading-menu-item is-active" : "heading-menu-item"}>
+                                <div
+                                  className={
+                                    active ? "heading-menu-item is-active" : "heading-menu-item"
+                                  }
+                                >
                                   <div className="heading-menu-left">
                                     <span className="heading-menu-check">{active ? "✓" : ""}</span>
                                     <span
@@ -633,45 +720,53 @@ export default function Toolbar() {
                             };
                           })
                         : item.id === "text-align"
-                        ? alignItems.map((alignItem) => {
-                            const currentAlign = getCurrentAlignment();
-                            return {
-                              key: alignItem.key,
-                              label: alignItem.icon,
-                              ...(alignItem.key === currentAlign.key
-                                ? { icon: <span style={{ color: "#1890ff" }}>✓</span> }
-                                : {}),
-                            };
-                          })
-                        : item.id === "ordered-list"
-                        ? orderedListTypeItems.map((listItem) => ({
-                            ...listItem,
-                            label: `${listItem.label} ${listItem.description}`,
-                            ...(listItem.key === getCurrentOrderedListType() ? { icon: <span style={{ color: "#1890ff" }}>✓</span> } : {}),
-                          }))
-                        : item.id === "font-size"
-                        ? fontSizeItems.map((sizeItem) => {
-                            const active = sizeItem.key === getCurrentFontSize();
-                            return {
-                              key: sizeItem.key,
-                              label: (
-                                <div className="font-size-menu-item">
-                                  <span className="font-size-menu-check">{active ? "✓" : ""}</span>
-                                  <span className="font-size-menu-label">{sizeItem.label}</span>
-                                </div>
-                              ),
-                            };
-                          })
-                        : item.id === "code-language"
-                        ? codeLanguageItems.map((langItem) => {
-                            const active = langItem.key === getCurrentCodeLanguage();
-                            return {
-                              key: langItem.key,
-                              label: langItem.label,
-                              ...(active ? { icon: <span style={{ color: "#1890ff" }}>✓</span> } : {}),
-                            };
-                          })
-                        : fontSizeItems,
+                          ? alignItems.map((alignItem) => {
+                              const currentAlign = getCurrentAlignment();
+                              return {
+                                key: alignItem.key,
+                                label: alignItem.icon,
+                                ...(alignItem.key === currentAlign.key
+                                  ? { icon: <span style={{ color: "#1890ff" }}>✓</span> }
+                                  : {}),
+                              };
+                            })
+                          : item.id === "ordered-list"
+                            ? orderedListTypeItems.map((listItem) => ({
+                                ...listItem,
+                                label: `${listItem.label} ${listItem.description}`,
+                                ...(listItem.key === getCurrentOrderedListType()
+                                  ? { icon: <span style={{ color: "#1890ff" }}>✓</span> }
+                                  : {}),
+                              }))
+                            : item.id === "font-size"
+                              ? fontSizeItems.map((sizeItem) => {
+                                  const active = sizeItem.key === getCurrentFontSize();
+                                  return {
+                                    key: sizeItem.key,
+                                    label: (
+                                      <div className="font-size-menu-item">
+                                        <span className="font-size-menu-check">
+                                          {active ? "✓" : ""}
+                                        </span>
+                                        <span className="font-size-menu-label">
+                                          {sizeItem.label}
+                                        </span>
+                                      </div>
+                                    ),
+                                  };
+                                })
+                              : item.id === "code-language"
+                                ? codeLanguageItems.map((langItem) => {
+                                    const active = langItem.key === getCurrentCodeLanguage();
+                                    return {
+                                      key: langItem.key,
+                                      label: langItem.label,
+                                      ...(active
+                                        ? { icon: <span style={{ color: "#1890ff" }}>✓</span> }
+                                        : {}),
+                                    };
+                                  })
+                                : fontSizeItems,
                     onClick: ({ key }: { key: string }) => {
                       // 点击菜单项时立即隐藏 Tooltip
                       setTooltipOpen((prev) => ({ ...prev, [item.id]: false }));
@@ -727,102 +822,104 @@ export default function Toolbar() {
                     }
                   }}
                   dropdownRender={() => {
-                  const isBgColor = item.id === "bg-color";
-                  const currentColor = isBgColor ? selectedBgColor : selectedColor;
-                  const handleSelect = isBgColor ? handleBgColorSelect : handleColorSelect;
-                  
-                  return (
-                    <div className="color-picker-dropdown">
-                      {/* 默认颜色 - 包含所有实色网格 */}
-                      <div className="color-picker-section">
-                        <div className="color-picker-header">
-                          <span>默认</span>
-                        </div>
-                        <div className="color-grid">
-                          {solidColors.map((row, rowIndex) => (
-                            <div key={rowIndex} className="color-grid-row">
-                              {row.map((color) => (
-                                <div
-                                  key={color}
-                                  className={`color-swatch ${currentColor === color ? "selected" : ""}`}
-                                  style={{ backgroundColor: color }}
-                                  onClick={() => handleSelect(color)}
-                                  title={color}
-                                >
-                                  {currentColor === color && (
-                                    <span className="color-checkmark">✓</span>
-                                  )}
-                                </div>
-                              ))}
-                            </div>
-                          ))}
-                        </div>
-                      </div>
+                    const isBgColor = item.id === "bg-color";
+                    const currentColor = isBgColor ? selectedBgColor : selectedColor;
+                    const handleSelect = isBgColor ? handleBgColorSelect : handleColorSelect;
 
-                      {/* 渐变色 */}
-                      <div className="color-picker-section">
-                        <div className="color-picker-header">
-                          <span>渐变色</span>
-                        </div>
-                        <div className="gradient-grid">
-                          {gradientColors.map((gradient) => (
-                            <div
-                              key={gradient.id}
-                              className="gradient-swatch"
-                              style={{
-                                background: `linear-gradient(to right, ${gradient.colors[0]}, ${gradient.colors[1]})`,
-                              }}
-                              onClick={() => handleGradientSelect(gradient.id)}
-                            />
-                          ))}
-                        </div>
-                      </div>
-
-                      {/* 最近使用的自定义颜色 */}
-                      <div className="color-picker-section">
-                        <div className="color-picker-header">
-                          <span>最近使用自定义颜色</span>
-                        </div>
-                        <div className="color-picker-empty">暂无</div>
-                      </div>
-
-                      <Divider style={{ margin: "6px 0" }} />
-
-                      {/* 更多颜色 - 直接显示拾色器 */}
-                      <div className="color-picker-section">
-                        <div className="color-picker-header-advanced">
+                    return (
+                      <div className="color-picker-dropdown">
+                        {/* 默认颜色 - 包含所有实色网格 */}
+                        <div className="color-picker-section">
                           <div className="color-picker-header">
-                            <BgColorsOutlined style={{ fontSize: "12px" }} />
-                            <span>更多颜色</span>
+                            <span>默认</span>
                           </div>
-                          <div className="color-picker-advanced">
-                            <ColorPicker
-                              value={currentColor}
-                              onChange={(color) => {
-                                const hexColor = color.toHexString();
-                                // 立即更新 UI
-                                if (isBgColor) {
-                                  setSelectedBgColor(hexColor);
-                                } else {
-                                  setSelectedColor(hexColor);
-                                }
-                                // 防抖执行实际的颜色应用
-                                handleSelect(hexColor);
-                              }}
-                              showText
-                              size="small"
-                              getPopupContainer={(triggerNode) => {
-                                // 找到颜色选择器下拉菜单的容器，确保弹窗在 Dropdown 内部
-                                const dropdown = triggerNode.closest('.ant-dropdown') as HTMLElement;
-                                return dropdown || document.body;
-                              }}
-                            />
+                          <div className="color-grid">
+                            {solidColors.map((row, rowIndex) => (
+                              <div key={rowIndex} className="color-grid-row">
+                                {row.map((color) => (
+                                  <div
+                                    key={color}
+                                    className={`color-swatch ${currentColor === color ? "selected" : ""}`}
+                                    style={{ backgroundColor: color }}
+                                    onClick={() => handleSelect(color)}
+                                    title={color}
+                                  >
+                                    {currentColor === color && (
+                                      <span className="color-checkmark">✓</span>
+                                    )}
+                                  </div>
+                                ))}
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 渐变色 */}
+                        <div className="color-picker-section">
+                          <div className="color-picker-header">
+                            <span>渐变色</span>
+                          </div>
+                          <div className="gradient-grid">
+                            {gradientColors.map((gradient) => (
+                              <div
+                                key={gradient.id}
+                                className="gradient-swatch"
+                                style={{
+                                  background: `linear-gradient(to right, ${gradient.colors[0]}, ${gradient.colors[1]})`,
+                                }}
+                                onClick={() => handleGradientSelect(gradient.id)}
+                              />
+                            ))}
+                          </div>
+                        </div>
+
+                        {/* 最近使用的自定义颜色 */}
+                        <div className="color-picker-section">
+                          <div className="color-picker-header">
+                            <span>最近使用自定义颜色</span>
+                          </div>
+                          <div className="color-picker-empty">暂无</div>
+                        </div>
+
+                        <Divider style={{ margin: "6px 0" }} />
+
+                        {/* 更多颜色 - 直接显示拾色器 */}
+                        <div className="color-picker-section">
+                          <div className="color-picker-header-advanced">
+                            <div className="color-picker-header">
+                              <BgColorsOutlined style={{ fontSize: "12px" }} />
+                              <span>更多颜色</span>
+                            </div>
+                            <div className="color-picker-advanced">
+                              <ColorPicker
+                                value={currentColor}
+                                onChange={(color) => {
+                                  const hexColor = color.toHexString();
+                                  // 立即更新 UI
+                                  if (isBgColor) {
+                                    setSelectedBgColor(hexColor);
+                                  } else {
+                                    setSelectedColor(hexColor);
+                                  }
+                                  // 防抖执行实际的颜色应用
+                                  handleSelect(hexColor);
+                                }}
+                                showText
+                                size="small"
+                                getPopupContainer={(triggerNode) => {
+                                  // 找到颜色选择器下拉菜单的容器，确保弹窗在 Dropdown 内部
+                                  const dropdown = triggerNode.closest(
+                                    ".ant-dropdown",
+                                  ) as HTMLElement;
+                                  return dropdown || document.body;
+                                }}
+                              />
+                            </div>
                           </div>
                         </div>
                       </div>
-                    </div>
-                  );
-                }}
+                    );
+                  }}
                   trigger={["click"]}
                   disabled={!editorReady}
                 >
@@ -847,9 +944,7 @@ export default function Toolbar() {
               <button
                 key={item.id}
                 type="button"
-                className={`toolbar-button ${
-                  isActive(item.id) ? "active" : ""
-                }`}
+                className={`toolbar-button ${isActive(item.id) ? "active" : ""}`}
                 disabled={!editorReady}
                 aria-label={item.label}
                 onClick={handleClick(item.id)}
@@ -858,7 +953,7 @@ export default function Toolbar() {
                   <span className="toolbar-content">{item.content}</span>
                 </Tooltip>
               </button>
-            )
+            ),
           )}
         </div>
       ))}
@@ -880,7 +975,6 @@ export default function Toolbar() {
           />
         </Space>
       </Modal>
-
     </div>
   );
 }

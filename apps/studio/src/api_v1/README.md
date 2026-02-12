@@ -9,7 +9,10 @@ import { apiV1 } from "../api_v1";
 
 async function demo() {
   // 登录
-  const loginRes = await apiV1.auth.login({ emailOrUsername: "john", password: "pwd" });
+  const loginRes = await apiV1.auth.login({
+    emailOrUsername: "john",
+    password: "pwd",
+  });
   // token 已自动存入 localStorage，可直接调用受保护接口
   const me = await apiV1.auth.me();
 
@@ -17,7 +20,10 @@ async function demo() {
   const ws = await apiV1.workspaces.createWorkspace({ name: "我的空间" });
 
   // 创建文档
-  const doc = await apiV1.documents.createDocument({ workspaceId: ws.workspaceId, title: "测试文档" });
+  const doc = await apiV1.documents.createDocument({
+    workspaceId: ws.workspaceId,
+    title: "测试文档",
+  });
 
   // 上传资产
   // file 为 File 对象，例如来自 <input type="file">

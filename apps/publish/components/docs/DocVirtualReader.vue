@@ -32,7 +32,9 @@
       </div>
       <div v-else-if="hasMore" class="doc-reader-bottom-hint">继续下滑以加载更多内容</div>
 
-      <div class="doc-reader-bottom-meta">已加载 {{ returnedBlocks }} / {{ totalBlocks || returnedBlocks }}</div>
+      <div class="doc-reader-bottom-meta">
+        已加载 {{ returnedBlocks }} / {{ totalBlocks || returnedBlocks }}
+      </div>
 
       <NButton
         v-if="error && status !== 'append_loading'"

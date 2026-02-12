@@ -18,11 +18,7 @@ import type { EditorView } from "prosemirror-view";
 import { Input, Spin, message } from "antd";
 import { marked } from "marked";
 import { useDocumentEngineStore } from "./useDocumentEngineStore";
-import {
-  createRemoteBlock,
-  deleteRemoteBlock,
-  updateRemoteBlockContent,
-} from "./blockGateway";
+import { createRemoteBlock, deleteRemoteBlock, updateRemoteBlockContent } from "./blockGateway";
 import {
   areNormalizedBlocksEqual,
   contentTreeToHtml,
@@ -101,7 +97,7 @@ const resolveSyncConcurrency = (docBlockSize: number): number => {
 const runWithConcurrency = async <T, R>(
   items: T[],
   worker: (item: T, index: number) => Promise<R>,
-  concurrency = DEFAULT_SYNC_CONCURRENCY
+  concurrency = DEFAULT_SYNC_CONCURRENCY,
 ): Promise<R[]> => {
   if (items.length === 0) return [];
 
@@ -123,7 +119,7 @@ const runWithConcurrency = async <T, R>(
 };
 
 const buildBlockSignature = (
-  block: Pick<NormalizedDocBlock, "type" | "text" | "level" | "ordered" | "checked" | "language">
+  block: Pick<NormalizedDocBlock, "type" | "text" | "level" | "ordered" | "checked" | "language">,
 ): string => {
   return JSON.stringify({
     type: block.type,
@@ -137,7 +133,7 @@ const buildBlockSignature = (
 
 const buildLcsPairs = (
   remoteSignatures: string[],
-  localSignatures: string[]
+  localSignatures: string[],
 ): Array<{ remoteIndex: number; localIndex: number }> => {
   const m = remoteSignatures.length;
   const n = localSignatures.length;
@@ -213,7 +209,7 @@ const formatSortKey = (value: number): string | undefined => {
 
 const calcSortKeyForCreate = (
   localIndex: number,
-  placementSortKeys: Array<number | undefined>
+  placementSortKeys: Array<number | undefined>,
 ): string | undefined => {
   let prev: number | undefined;
   for (let i = localIndex - 1; i >= 0; i -= 1) {
@@ -255,16 +251,8 @@ const sortRemoteBlocks = (blocks: RemoteTopLevelBlock[]): RemoteTopLevelBlock[] 
 export default function TiptapNotionEditor() {
   const { currentDocument, updateDocumentTitle } = useDocumentContext();
   const { isEditing } = useEditContext();
-  const {
-    docId,
-    blockId,
-    markdown,
-    docVer,
-    initialized,
-    setMarkdown,
-    setEditor,
-    switchDocument,
-  } = useDocumentEngineStore();
+  const { docId, blockId, markdown, docVer, initialized, setMarkdown, setEditor, switchDocument } =
+    useDocumentEngineStore();
 
   const isUpdatingFromStore = useRef(false);
   const initializingDocId = useRef<string | null>(null);
@@ -360,327 +348,342 @@ export default function TiptapNotionEditor() {
     });
   }, [shikiHighlighter]);
 
-  const editor = useEditor({
-    extensions: [
-      StarterKit.configure({
-        codeBlock: false,
-        heading: {
-          levels: [1, 2, 3, 4, 5, 6],
-        },
-      }),
-      codeBlockExtension,
-      Placeholder.configure({
-        placeholder: "像在 Notion / Typora 一样开始记录你的知识吧…",
-      }),
-      Underline,
-      TaskList.configure({
-        HTMLAttributes: {
-          class: "task-list",
-        },
-      }),
-      TaskItem.configure({
-        nested: true,
-      }),
-      Link.configure({
-        openOnClick: false,
-        HTMLAttributes: {
-          class: "tiptap-link",
-        },
-      }),
-      TextStyle,
-      Color,
-      Highlight.configure({
-        multicolor: true,
-      }),
-      TextAlign.configure({
-        types: ["heading", "paragraph"],
-      }),
-      // 粘贴处理扩展（支持 HTML 和 Markdown）
-      Extension.create({
-        name: "pasteHandler",
-        addProseMirrorPlugins() {
-          // 清理粘贴的 HTML 内容
-          const cleanPastedHTML = (html: string): string => {
-            // 创建一个临时 DOM 来解析和清理 HTML
-            const tempDiv = document.createElement("div");
-            tempDiv.innerHTML = html;
-            
-            // 移除不需要的标签和属性
-            const unwantedTags = ["script", "style", "meta", "link", "iframe", "object", "embed"];
-            unwantedTags.forEach(tag => {
-              const elements = tempDiv.querySelectorAll(tag);
-              elements.forEach(el => el.remove());
-            });
-            
-            // 清理链接，确保链接有效
-            const links = tempDiv.querySelectorAll("a");
-            links.forEach(link => {
-              const href = link.getAttribute("href");
-              if (!href || href.startsWith("javascript:") || href.startsWith("data:")) {
-                // 移除危险的链接
-                const parent = link.parentNode;
-                if (parent) {
-                  while (link.firstChild) {
-                    parent.insertBefore(link.firstChild, link);
+  const editor = useEditor(
+    {
+      extensions: [
+        StarterKit.configure({
+          codeBlock: false,
+          heading: {
+            levels: [1, 2, 3, 4, 5, 6],
+          },
+        }),
+        codeBlockExtension,
+        Placeholder.configure({
+          placeholder: "像在 Notion / Typora 一样开始记录你的知识吧…",
+        }),
+        Underline,
+        TaskList.configure({
+          HTMLAttributes: {
+            class: "task-list",
+          },
+        }),
+        TaskItem.configure({
+          nested: true,
+        }),
+        Link.configure({
+          openOnClick: false,
+          HTMLAttributes: {
+            class: "tiptap-link",
+          },
+        }),
+        TextStyle,
+        Color,
+        Highlight.configure({
+          multicolor: true,
+        }),
+        TextAlign.configure({
+          types: ["heading", "paragraph"],
+        }),
+        // 粘贴处理扩展（支持 HTML 和 Markdown）
+        Extension.create({
+          name: "pasteHandler",
+          addProseMirrorPlugins() {
+            // 清理粘贴的 HTML 内容
+            const cleanPastedHTML = (html: string): string => {
+              // 创建一个临时 DOM 来解析和清理 HTML
+              const tempDiv = document.createElement("div");
+              tempDiv.innerHTML = html;
+
+              // 移除不需要的标签和属性
+              const unwantedTags = ["script", "style", "meta", "link", "iframe", "object", "embed"];
+              unwantedTags.forEach((tag) => {
+                const elements = tempDiv.querySelectorAll(tag);
+                elements.forEach((el) => el.remove());
+              });
+
+              // 清理链接，确保链接有效
+              const links = tempDiv.querySelectorAll("a");
+              links.forEach((link) => {
+                const href = link.getAttribute("href");
+                if (!href || href.startsWith("javascript:") || href.startsWith("data:")) {
+                  // 移除危险的链接
+                  const parent = link.parentNode;
+                  if (parent) {
+                    while (link.firstChild) {
+                      parent.insertBefore(link.firstChild, link);
+                    }
+                    parent.removeChild(link);
                   }
-                  parent.removeChild(link);
                 }
-              }
-            });
-            
-            // 移除空的段落和只有尾随换行符的段落
-            const paragraphs = tempDiv.querySelectorAll("p");
-            paragraphs.forEach(p => {
-              // 检查段落是否只包含 br 标签（特别是 ProseMirror-trailingBreak）
-              const brs = p.querySelectorAll("br");
-              const hasOnlyBr = brs.length > 0 && p.textContent?.trim() === "";
-              const hasTrailingBreak = Array.from(brs).some(br => 
-                br.classList.contains("ProseMirror-trailingBreak")
-              );
-              
-              if (hasOnlyBr || hasTrailingBreak) {
-                p.remove();
-              }
-            });
-            
-            // 移除所有 ProseMirror-trailingBreak 的 br 标签
-            const trailingBreaks = tempDiv.querySelectorAll("br.ProseMirror-trailingBreak");
-            trailingBreaks.forEach(br => br.remove());
-            
-            // 清理开头和结尾的空段落
-            let cleanedHtml = tempDiv.innerHTML;
-            
-            // 移除开头的空段落
-            cleanedHtml = cleanedHtml.replace(/^<p>\s*<br[^>]*>\s*<\/p>/i, "");
-            cleanedHtml = cleanedHtml.replace(/^<p>\s*<\/p>/i, "");
-            
-            // 移除结尾的空段落
-            cleanedHtml = cleanedHtml.replace(/<p>\s*<br[^>]*>\s*<\/p>$/i, "");
-            cleanedHtml = cleanedHtml.replace(/<p>\s*<\/p>$/i, "");
-            
-            return cleanedHtml;
-          };
-          
-          return [
-            new Plugin({
-              props: {
-                handlePaste: (view: EditorView, event: ClipboardEvent) => {
-                  // 优先获取 HTML 内容（从网站复制的内容）
-                  const html = event.clipboardData?.getData("text/html");
-                  const text = event.clipboardData?.getData("text/plain");
-                  
-                  if (!html && !text) return false;
+              });
 
-                  // 如果有 HTML 内容，直接使用（从网站复制的内容）
-                  if (html && html.trim()) {
-                    // 检查是否是有效的 HTML
-                    const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(html);
-                    
-                    if (hasHtmlTags) {
-                      event.preventDefault();
-                      
-                      try {
-                        // 清理 HTML（移除不需要的标签和属性）
-                        const cleanHtml = cleanPastedHTML(html);
-                        
-                        // 使用编辑器实例插入内容
-                        const editorInstance = this.editor;
-                        if (editorInstance) {
-                          // 插入内容
-                          editorInstance.commands.insertContent(cleanHtml, {
-                            parseOptions: {
-                              preserveWhitespace: false,
-                            },
-                          });
-                          
-                          // 插入后立即清理：使用 requestAnimationFrame 确保 DOM 更新完成
-                          requestAnimationFrame(() => {
-                            requestAnimationFrame(() => {
-                              const html = editorInstance.getHTML();
-                              
-                              // 如果包含 ProseMirror-trailingBreak，清理它
-                              if (html.includes('ProseMirror-trailingBreak')) {
-                                // 使用正则表达式移除所有包含 ProseMirror-trailingBreak 的段落
-                                const cleaned = html
-                                  // 移除开头的空段落（包含 ProseMirror-trailingBreak）
-                                  .replace(/^<p[^>]*>\s*<br[^>]*class="ProseMirror-trailingBreak"[^>]*>\s*<\/p>/i, "")
-                                  // 移除所有包含 ProseMirror-trailingBreak 的段落
-                                  .replace(/<p[^>]*>[\s\S]*?<br[^>]*class="ProseMirror-trailingBreak"[^>]*>[\s\S]*?<\/p>/gi, "")
-                                  // 移除所有单独的 ProseMirror-trailingBreak br 标签
-                                  .replace(/<br[^>]*class="ProseMirror-trailingBreak"[^>]*>/gi, "")
-                                  // 移除开头的空段落（不包含 class 的）
-                                  .replace(/^<p>\s*<br[^>]*>\s*<\/p>/i, "")
-                                  .replace(/^<p>\s*<\/p>/i, "");
-                                
-                                // 如果清理后的内容不同，更新编辑器
-                                if (cleaned !== html && cleaned.trim() !== "") {
-                                  // 保存当前光标位置
-                                  const { from } = editorInstance.state.selection;
-                                  
-                                  // 设置清理后的内容
-                                  editorInstance.commands.setContent(cleaned, { emitUpdate: false });
-                                  
-                                  // 恢复光标位置（如果可能）
-                                  setTimeout(() => {
-                                    try {
-                                      const newDoc = editorInstance.state.doc;
-                                      const newFrom = Math.min(from, newDoc.content.size);
-                                      editorInstance.commands.setTextSelection(newFrom);
-                                    } catch {
-                                      // 忽略光标位置错误
-                                    }
-                                  }, 0);
-                                }
-                              }
+              // 移除空的段落和只有尾随换行符的段落
+              const paragraphs = tempDiv.querySelectorAll("p");
+              paragraphs.forEach((p) => {
+                // 检查段落是否只包含 br 标签（特别是 ProseMirror-trailingBreak）
+                const brs = p.querySelectorAll("br");
+                const hasOnlyBr = brs.length > 0 && p.textContent?.trim() === "";
+                const hasTrailingBreak = Array.from(brs).some((br) =>
+                  br.classList.contains("ProseMirror-trailingBreak"),
+                );
+
+                if (hasOnlyBr || hasTrailingBreak) {
+                  p.remove();
+                }
+              });
+
+              // 移除所有 ProseMirror-trailingBreak 的 br 标签
+              const trailingBreaks = tempDiv.querySelectorAll("br.ProseMirror-trailingBreak");
+              trailingBreaks.forEach((br) => br.remove());
+
+              // 清理开头和结尾的空段落
+              let cleanedHtml = tempDiv.innerHTML;
+
+              // 移除开头的空段落
+              cleanedHtml = cleanedHtml.replace(/^<p>\s*<br[^>]*>\s*<\/p>/i, "");
+              cleanedHtml = cleanedHtml.replace(/^<p>\s*<\/p>/i, "");
+
+              // 移除结尾的空段落
+              cleanedHtml = cleanedHtml.replace(/<p>\s*<br[^>]*>\s*<\/p>$/i, "");
+              cleanedHtml = cleanedHtml.replace(/<p>\s*<\/p>$/i, "");
+
+              return cleanedHtml;
+            };
+
+            return [
+              new Plugin({
+                props: {
+                  handlePaste: (view: EditorView, event: ClipboardEvent) => {
+                    // 优先获取 HTML 内容（从网站复制的内容）
+                    const html = event.clipboardData?.getData("text/html");
+                    const text = event.clipboardData?.getData("text/plain");
+
+                    if (!html && !text) return false;
+
+                    // 如果有 HTML 内容，直接使用（从网站复制的内容）
+                    if (html && html.trim()) {
+                      // 检查是否是有效的 HTML
+                      const hasHtmlTags = /<\/?[a-z][\s\S]*>/i.test(html);
+
+                      if (hasHtmlTags) {
+                        event.preventDefault();
+
+                        try {
+                          // 清理 HTML（移除不需要的标签和属性）
+                          const cleanHtml = cleanPastedHTML(html);
+
+                          // 使用编辑器实例插入内容
+                          const editorInstance = this.editor;
+                          if (editorInstance) {
+                            // 插入内容
+                            editorInstance.commands.insertContent(cleanHtml, {
+                              parseOptions: {
+                                preserveWhitespace: false,
+                              },
                             });
-                          });
-                          
-                          return true;
-                        } else {
-                          // 备用方案：使用 ProseMirror 的方式直接插入
-                          const parser = ProseMirrorDOMParser.fromSchema(view.state.schema);
-                          const dom = new DOMParser().parseFromString(cleanHtml, "text/html");
-                          const fragment = parser.parse(dom.body);
-                          const { from, to } = view.state.selection;
-                          const slice = new Slice(fragment.content, 0, 0);
-                          const transaction = view.state.tr.replace(from, to, slice);
-                          view.dispatch(transaction);
-                          return true;
+
+                            // 插入后立即清理：使用 requestAnimationFrame 确保 DOM 更新完成
+                            requestAnimationFrame(() => {
+                              requestAnimationFrame(() => {
+                                const html = editorInstance.getHTML();
+
+                                // 如果包含 ProseMirror-trailingBreak，清理它
+                                if (html.includes("ProseMirror-trailingBreak")) {
+                                  // 使用正则表达式移除所有包含 ProseMirror-trailingBreak 的段落
+                                  const cleaned = html
+                                    // 移除开头的空段落（包含 ProseMirror-trailingBreak）
+                                    .replace(
+                                      /^<p[^>]*>\s*<br[^>]*class="ProseMirror-trailingBreak"[^>]*>\s*<\/p>/i,
+                                      "",
+                                    )
+                                    // 移除所有包含 ProseMirror-trailingBreak 的段落
+                                    .replace(
+                                      /<p[^>]*>[\s\S]*?<br[^>]*class="ProseMirror-trailingBreak"[^>]*>[\s\S]*?<\/p>/gi,
+                                      "",
+                                    )
+                                    // 移除所有单独的 ProseMirror-trailingBreak br 标签
+                                    .replace(
+                                      /<br[^>]*class="ProseMirror-trailingBreak"[^>]*>/gi,
+                                      "",
+                                    )
+                                    // 移除开头的空段落（不包含 class 的）
+                                    .replace(/^<p>\s*<br[^>]*>\s*<\/p>/i, "")
+                                    .replace(/^<p>\s*<\/p>/i, "");
+
+                                  // 如果清理后的内容不同，更新编辑器
+                                  if (cleaned !== html && cleaned.trim() !== "") {
+                                    // 保存当前光标位置
+                                    const { from } = editorInstance.state.selection;
+
+                                    // 设置清理后的内容
+                                    editorInstance.commands.setContent(cleaned, {
+                                      emitUpdate: false,
+                                    });
+
+                                    // 恢复光标位置（如果可能）
+                                    setTimeout(() => {
+                                      try {
+                                        const newDoc = editorInstance.state.doc;
+                                        const newFrom = Math.min(from, newDoc.content.size);
+                                        editorInstance.commands.setTextSelection(newFrom);
+                                      } catch {
+                                        // 忽略光标位置错误
+                                      }
+                                    }, 0);
+                                  }
+                                }
+                              });
+                            });
+
+                            return true;
+                          } else {
+                            // 备用方案：使用 ProseMirror 的方式直接插入
+                            const parser = ProseMirrorDOMParser.fromSchema(view.state.schema);
+                            const dom = new DOMParser().parseFromString(cleanHtml, "text/html");
+                            const fragment = parser.parse(dom.body);
+                            const { from, to } = view.state.selection;
+                            const slice = new Slice(fragment.content, 0, 0);
+                            const transaction = view.state.tr.replace(from, to, slice);
+                            view.dispatch(transaction);
+                            return true;
+                          }
+                        } catch {
+                          return false;
                         }
-                      } catch {
-                        return false;
                       }
                     }
-                  }
 
-                  // 如果没有 HTML 或 HTML 无效，检查是否是 Markdown 格式的纯文本
-                  if (text) {
-                    // 检测是否是 Markdown 格式
-                    const looksLikeMarkdown = /(^#{1,6}\s)|(\*\*.*\*\*)|(\*.*\*)|(^-\s)|(^\*\s)|(^\d+\.\s)|(^>\s)|(\[.*\]\(.*\))|(```)/m.test(text);
+                    // 如果没有 HTML 或 HTML 无效，检查是否是 Markdown 格式的纯文本
+                    if (text) {
+                      // 检测是否是 Markdown 格式
+                      const looksLikeMarkdown =
+                        /(^#{1,6}\s)|(\*\*.*\*\*)|(\*.*\*)|(^-\s)|(^\*\s)|(^\d+\.\s)|(^>\s)|(\[.*\]\(.*\))|(```)/m.test(
+                          text,
+                        );
 
-                    if (looksLikeMarkdown) {
-                      event.preventDefault();
-                      
-                      try {
-                        // 使用 marked.parse 同步解析 Markdown 为 HTML
-                        const parsedHtml = marked.parse(text, {
-                          breaks: true,
-                          gfm: true,
-                        }) as string;
+                      if (looksLikeMarkdown) {
+                        event.preventDefault();
 
-                        // 使用编辑器实例插入内容
-                        const editorInstance = this.editor;
-                        if (editorInstance) {
-                          editorInstance.commands.insertContent(parsedHtml);
-                          return true;
-                        } else {
-                          // 备用方案：使用 ProseMirror 的方式直接插入
-                          const parser = ProseMirrorDOMParser.fromSchema(view.state.schema);
-                          const dom = new DOMParser().parseFromString(parsedHtml, "text/html");
-                          const fragment = parser.parse(dom.body);
-                          const { from, to } = view.state.selection;
-                          const slice = new Slice(fragment.content, 0, 0);
-                          const transaction = view.state.tr.replace(from, to, slice);
-                          view.dispatch(transaction);
-                          return true;
+                        try {
+                          // 使用 marked.parse 同步解析 Markdown 为 HTML
+                          const parsedHtml = marked.parse(text, {
+                            breaks: true,
+                            gfm: true,
+                          }) as string;
+
+                          // 使用编辑器实例插入内容
+                          const editorInstance = this.editor;
+                          if (editorInstance) {
+                            editorInstance.commands.insertContent(parsedHtml);
+                            return true;
+                          } else {
+                            // 备用方案：使用 ProseMirror 的方式直接插入
+                            const parser = ProseMirrorDOMParser.fromSchema(view.state.schema);
+                            const dom = new DOMParser().parseFromString(parsedHtml, "text/html");
+                            const fragment = parser.parse(dom.body);
+                            const { from, to } = view.state.selection;
+                            const slice = new Slice(fragment.content, 0, 0);
+                            const transaction = view.state.tr.replace(from, to, slice);
+                            view.dispatch(transaction);
+                            return true;
+                          }
+                        } catch {
+                          return false;
                         }
-                      } catch {
-                        return false;
                       }
                     }
-                  }
-                  
-                  // 其他情况交给默认处理
-                  return false;
-                },
-              },
-            }),
-          ];
-        },
-      }),
-      // 自定义字号扩展
-      Extension.create({
-        name: "fontSize",
-        addOptions() {
-          return {
-            types: ["textStyle"],
-          };
-        },
-        addGlobalAttributes() {
-          return [
-            {
-              types: this.options.types,
-              attributes: {
-                fontSize: {
-                  default: null,
-                  parseHTML: (element) => {
-                    const fontSize = element.style.fontSize;
-                    if (fontSize) {
-                      return fontSize.replace("px", "");
-                    }
-                    return null;
-                  },
-                  renderHTML: (attributes) => {
-                    if (!attributes.fontSize) {
-                      return {};
-                    }
-                    return {
-                      style: `font-size: ${attributes.fontSize}px`,
-                    };
+
+                    // 其他情况交给默认处理
+                    return false;
                   },
                 },
+              }),
+            ];
+          },
+        }),
+        // 自定义字号扩展
+        Extension.create({
+          name: "fontSize",
+          addOptions() {
+            return {
+              types: ["textStyle"],
+            };
+          },
+          addGlobalAttributes() {
+            return [
+              {
+                types: this.options.types,
+                attributes: {
+                  fontSize: {
+                    default: null,
+                    parseHTML: (element) => {
+                      const fontSize = element.style.fontSize;
+                      if (fontSize) {
+                        return fontSize.replace("px", "");
+                      }
+                      return null;
+                    },
+                    renderHTML: (attributes) => {
+                      if (!attributes.fontSize) {
+                        return {};
+                      }
+                      return {
+                        style: `font-size: ${attributes.fontSize}px`,
+                      };
+                    },
+                  },
+                },
               },
-            },
-          ];
+            ];
+          },
+          addCommands() {
+            return {
+              setFontSize:
+                (fontSize: string) =>
+                ({ chain }: { chain: () => TiptapChain }) => {
+                  return chain().setMark("textStyle", { fontSize }).run();
+                },
+              unsetFontSize:
+                () =>
+                ({ chain }: { chain: () => TiptapChain }) => {
+                  return chain()
+                    .setMark("textStyle", { fontSize: null })
+                    .removeEmptyTextStyle()
+                    .run();
+                },
+            };
+          },
+        }),
+      ],
+      content: markdown || "<p></p>",
+      autofocus: "end",
+      editable: isEditing,
+      editorProps: {
+        attributes: {
+          class: "tiptap-editor",
         },
-        addCommands() {
-          return {
-            setFontSize:
-              (fontSize: string) =>
-              ({ chain }: { chain: () => TiptapChain }) => {
-                return chain()
-                  .setMark("textStyle", { fontSize })
-                  .run();
-              },
-            unsetFontSize:
-              () =>
-              ({ chain }: { chain: () => TiptapChain }) => {
-                return chain()
-                  .setMark("textStyle", { fontSize: null })
-                  .removeEmptyTextStyle()
-                  .run();
-              },
-          };
-        },
-      }),
-    ],
-    content: markdown || "<p></p>",
-    autofocus: "end",
-    editable: isEditing,
-    editorProps: {
-      attributes: {
-        class: "tiptap-editor",
+      },
+      onBlur: () => {
+        void flushAutoBlockSyncRef.current();
+      },
+      onUpdate: ({ editor }) => {
+        // 如果是从 store 更新内容，不触发 markdown 更新
+        if (isUpdatingFromStore.current) {
+          isUpdatingFromStore.current = false;
+          return;
+        }
+        const html = editor.getHTML();
+        const normalized = html === "<p></p>" ? "" : html;
+        blockDirtyRef.current = true;
+        blockChangeVersionRef.current += 1;
+        blockBufferedOpsRef.current += 1;
+        setSaveStage("dirty");
+        setMarkdown(normalized);
+        scheduleAutoBlockSyncRef.current();
       },
     },
-    onBlur: () => {
-      void flushAutoBlockSyncRef.current();
-    },
-    onUpdate: ({ editor }) => {
-      // 如果是从 store 更新内容，不触发 markdown 更新
-      if (isUpdatingFromStore.current) {
-        isUpdatingFromStore.current = false;
-        return;
-      }
-      const html = editor.getHTML();
-      const normalized = html === "<p></p>" ? "" : html;
-      blockDirtyRef.current = true;
-      blockChangeVersionRef.current += 1;
-      blockBufferedOpsRef.current += 1;
-      setSaveStage("dirty");
-      setMarkdown(normalized);
-      scheduleAutoBlockSyncRef.current();
-    },
-  }, [codeBlockExtension]);
+    [codeBlockExtension],
+  );
 
   // 保存编辑器实例到 ref，供粘贴插件使用
   useEffect(() => {
@@ -717,7 +720,7 @@ export default function TiptapNotionEditor() {
       }
       setRemoteSnapshotCache(targetDocId, { rootBlockId, blocks: sortedBlocks });
     },
-    []
+    [],
   );
 
   const loadRemoteSnapshot = useCallback(
@@ -754,7 +757,7 @@ export default function TiptapNotionEditor() {
         remoteSnapshotLoadingRef.current.delete(targetDocId);
       }
     },
-    [setRemoteSnapshot]
+    [setRemoteSnapshot],
   );
 
   const clearTitleAutoSaveTimer = useCallback(() => {
@@ -799,7 +802,7 @@ export default function TiptapNotionEditor() {
         return false;
       }
     },
-    [updateDocumentTitle]
+    [updateDocumentTitle],
   );
 
   const scheduleTitleAutoSave = useCallback(() => {
@@ -863,12 +866,14 @@ export default function TiptapNotionEditor() {
     const persistJob = (async () => {
       await loadRemoteSnapshot(targetDocId);
       const remoteSortedBlocks = sortRemoteBlocks(
-        remoteSnapshotByDocRef.current.get(targetDocId) || []
+        remoteSnapshotByDocRef.current.get(targetDocId) || [],
       );
       const rootParentId = rootBlockIdByDocRef.current.get(targetDocId) || undefined;
       const docBlockSize = Math.max(targetBlocks.length, remoteSortedBlocks.length);
       const syncConcurrency = resolveSyncConcurrency(docBlockSize);
-      const remoteSignatures = remoteSortedBlocks.map((item) => buildBlockSignature(item.normalized));
+      const remoteSignatures = remoteSortedBlocks.map((item) =>
+        buildBlockSignature(item.normalized),
+      );
       const localSignatures = targetBlocks.map((item) => buildBlockSignature(item));
       const stablePairs = buildLcsPairs(remoteSignatures, localSignatures);
 
@@ -925,13 +930,21 @@ export default function TiptapNotionEditor() {
           replaced += 1;
         }
 
-        for (let remoteIndex = remoteCursor + pairCount; remoteIndex < remoteSegmentEnd; remoteIndex += 1) {
+        for (
+          let remoteIndex = remoteCursor + pairCount;
+          remoteIndex < remoteSegmentEnd;
+          remoteIndex += 1
+        ) {
           const remoteBlock = remoteSortedBlocks[remoteIndex];
           if (!remoteBlock) continue;
           deleteOps.push({ remoteIndex, blockId: remoteBlock.blockId });
         }
 
-        for (let localIndex = localCursor + pairCount; localIndex < localSegmentEnd; localIndex += 1) {
+        for (
+          let localIndex = localCursor + pairCount;
+          localIndex < localSegmentEnd;
+          localIndex += 1
+        ) {
           const localBlock = targetBlocks[localIndex];
           if (!localBlock) continue;
           createOps.push({ localIndex, localBlock });
@@ -952,7 +965,7 @@ export default function TiptapNotionEditor() {
         await runWithConcurrency(
           updatesSorted,
           async (item) => updateRemoteBlockContent(item.blockId, item.localBlock),
-          syncConcurrency
+          syncConcurrency,
         );
         updated = updatesSorted.length;
       }
@@ -960,15 +973,13 @@ export default function TiptapNotionEditor() {
       const deletesSorted = [...deleteOps].sort((a, b) => b.remoteIndex - a.remoteIndex);
       if (deletesSorted.length > 0) {
         // 后端 DELETE 当前会触发版本递增，串行执行可规避并发唯一键冲突
-        await runWithConcurrency(
-          deletesSorted,
-          async (item) => deleteRemoteBlock(item.blockId),
-          1
-        );
+        await runWithConcurrency(deletesSorted, async (item) => deleteRemoteBlock(item.blockId), 1);
         deleted = deletesSorted.length;
       }
 
-      const localPlacementSortKeys = new Array<number | undefined>(targetBlocks.length).fill(undefined);
+      const localPlacementSortKeys = new Array<number | undefined>(targetBlocks.length).fill(
+        undefined,
+      );
       mappedPairs.forEach((pair) => {
         const remoteBlock = remoteSortedBlocks[pair.remoteIndex];
         if (!remoteBlock) return;
@@ -986,7 +997,7 @@ export default function TiptapNotionEditor() {
         if (sortKey) {
           const parsedSortKey = Number(sortKey);
           if (Number.isFinite(parsedSortKey)) {
-          localPlacementSortKeys[item.localIndex] = parsedSortKey;
+            localPlacementSortKeys[item.localIndex] = parsedSortKey;
           }
         }
         createSortKeyByLocalIndex.set(item.localIndex, sortKey);
@@ -1008,10 +1019,12 @@ export default function TiptapNotionEditor() {
             blockId,
           };
         },
-        syncConcurrency
+        syncConcurrency,
       );
 
-      const createsOrderedByLocalIndex = [...createResults].sort((a, b) => a.localIndex - b.localIndex);
+      const createsOrderedByLocalIndex = [...createResults].sort(
+        (a, b) => a.localIndex - b.localIndex,
+      );
       for (const item of createsOrderedByLocalIndex) {
         createdBlockIdByLocalIndex.set(item.localIndex, item.blockId);
       }
@@ -1069,10 +1082,7 @@ export default function TiptapNotionEditor() {
         setSaveStage("synced");
       } else {
         blockDirtyRef.current = true;
-        blockBufferedOpsRef.current = Math.max(
-          1,
-          blockChangeVersionRef.current - syncStartVersion
-        );
+        blockBufferedOpsRef.current = Math.max(1, blockChangeVersionRef.current - syncStartVersion);
         setSaveStage("dirty");
         scheduleAutoBlockSyncRef.current();
       }
@@ -1131,12 +1141,7 @@ export default function TiptapNotionEditor() {
         void flushAutoBlockSync();
       }, AUTO_BLOCK_SYNC_MAX_WAIT_MS);
     }
-  }, [
-    clearAutoBlockSyncMaxWaitTimer,
-    clearAutoBlockSyncTimer,
-    flushAutoBlockSync,
-    isEditing,
-  ]);
+  }, [clearAutoBlockSyncMaxWaitTimer, clearAutoBlockSyncTimer, flushAutoBlockSync, isEditing]);
 
   useEffect(() => {
     scheduleAutoBlockSyncRef.current = () => {
@@ -1200,13 +1205,13 @@ export default function TiptapNotionEditor() {
         }
       }
     },
-    [editor, setMarkdown, setRemoteSnapshot]
+    [editor, setMarkdown, setRemoteSnapshot],
   );
 
   // 初始化文档或切换文档
   useEffect(() => {
     if (!currentDocument) return;
-    
+
     const engine = currentDocument.engine;
     const newDocId = currentDocument.docId;
 
@@ -1214,10 +1219,10 @@ export default function TiptapNotionEditor() {
     if (initializingDocId.current === newDocId || (initialized && docId === newDocId)) {
       return;
     }
-    
+
     // 标记正在初始化
     initializingDocId.current = newDocId;
-    
+
     // 切换文档时，如果 docId 不同，先清空编辑器内容
     if (editor && newDocId !== docId) {
       isUpdatingFromStore.current = true;
@@ -1229,7 +1234,7 @@ export default function TiptapNotionEditor() {
         });
       });
     }
-    
+
     // 切换文档时重新初始化
     switchDocument(newDocId, engine).finally(() => {
       // 初始化完成后清除标记
@@ -1259,12 +1264,12 @@ export default function TiptapNotionEditor() {
       }
       return;
     }
-    
+
     // 如果 docId 不匹配，不更新（可能是旧的状态）
     if (docId !== currentDocument?.docId) {
       return;
     }
-    
+
     const current = editor.getHTML();
     const normalizedCurrent = current === "<p></p>" ? "" : current;
     const normalizedMarkdown = markdown || "";
@@ -1278,7 +1283,7 @@ export default function TiptapNotionEditor() {
     isUpdatingFromStore.current = true;
     // 更新编辑器内容，但不触发 onUpdate 事件
     editor.commands.setContent(markdown || "<p></p>", { emitUpdate: false });
-    
+
     // 立即在下一个事件循环中重置标志，确保用户输入不会被阻止
     // 使用 requestAnimationFrame 确保在浏览器渲染后重置
     requestAnimationFrame(() => {
@@ -1400,9 +1405,7 @@ export default function TiptapNotionEditor() {
                     placeholder=""
                     bordered={false}
                   />
-                  {!title && (
-                    <span className="tiptap-title-placeholder">未命名文档</span>
-                  )}
+                  {!title && <span className="tiptap-title-placeholder">未命名文档</span>}
                 </>
               ) : (
                 <div className="tiptap-title-display">
@@ -1418,7 +1421,9 @@ export default function TiptapNotionEditor() {
             <span className="tiptap-meta-pill">文档版本 {docVer}</span>
             <span className="tiptap-meta-dot">·</span>
             <span className="tiptap-meta-text">
-              {(saveStage === "saving" || saveStage === "committing") && <Spin size="small" style={{ marginRight: 6 }} />}
+              {(saveStage === "saving" || saveStage === "committing") && (
+                <Spin size="small" style={{ marginRight: 6 }} />
+              )}
               {saveStatusTextMap[saveStage]}
             </span>
           </div>
@@ -1431,4 +1436,3 @@ export default function TiptapNotionEditor() {
     </div>
   );
 }
-

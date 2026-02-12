@@ -26,7 +26,9 @@ const normalizeOptionalText = (value?: string): string | null => {
 };
 
 const normalizeTags = (tags?: string[]): string[] => {
-  return Array.from(new Set((tags || []).filter((item) => typeof item === "string" && item.trim()))).sort();
+  return Array.from(
+    new Set((tags || []).filter((item) => typeof item === "string" && item.trim())),
+  ).sort();
 };
 
 export default function DocumentMetaModal(props: DocumentMetaModalProps) {
@@ -39,7 +41,10 @@ export default function DocumentMetaModal(props: DocumentMetaModalProps) {
   const [tagLoading, setTagLoading] = useState(false);
   const [tagOptions, setTagOptions] = useState<WorkspaceTag[]>([]);
 
-  const targetDocId = useMemo(() => currentDoc?.docId || fallbackDocId || "", [currentDoc?.docId, fallbackDocId]);
+  const targetDocId = useMemo(
+    () => currentDoc?.docId || fallbackDocId || "",
+    [currentDoc?.docId, fallbackDocId],
+  );
 
   useEffect(() => {
     if (!open || !currentDoc) return;
@@ -185,11 +190,19 @@ export default function DocumentMetaModal(props: DocumentMetaModalProps) {
           <Input placeholder="例如：📘" />
         </Form.Item>
 
-        <Form.Item label="封面地址" name="cover" rules={[{ max: 500, message: "封面地址长度不能超过 500" }]}>
+        <Form.Item
+          label="封面地址"
+          name="cover"
+          rules={[{ max: 500, message: "封面地址长度不能超过 500" }]}
+        >
           <Input placeholder="https://example.com/cover.jpg" />
         </Form.Item>
 
-        <Form.Item label="分类" name="category" rules={[{ max: 50, message: "分类长度不能超过 50" }]}>
+        <Form.Item
+          label="分类"
+          name="category"
+          rules={[{ max: 50, message: "分类长度不能超过 50" }]}
+        >
           <Input placeholder="如：技术文档" />
         </Form.Item>
 

@@ -7,7 +7,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  
+
   /* 确保 Header 随 Sidebar 移动的过渡效果 */
   transition: padding-left 0.32s cubic-bezier(0.4, 0, 0.2, 1);
 }
@@ -121,7 +121,10 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: background-color 0.15s ease, border-color 0.15s ease, color 0.15s ease;
+  transition:
+    background-color 0.15s ease,
+    border-color 0.15s ease,
+    color 0.15s ease;
 }
 
 .header-edit-btn .ant-btn-loading-icon {

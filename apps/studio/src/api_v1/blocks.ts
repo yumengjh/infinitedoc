@@ -48,16 +48,12 @@ export const createBlock = (payload: CreateBlockPayload, config?: RequestConfig)
 export const updateBlockContent = (
   blockId: string,
   payload: UpdateBlockContentPayload,
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<void>(api.patch(`/blocks/${blockId}/content`, payload, config));
 };
 
-export const moveBlock = (
-  blockId: string,
-  payload: MoveBlockPayload,
-  config?: RequestConfig
-) => {
+export const moveBlock = (blockId: string, payload: MoveBlockPayload, config?: RequestConfig) => {
   return unwrap<void>(api.post(`/blocks/${blockId}/move`, payload, config));
 };
 
@@ -68,9 +64,11 @@ export const deleteBlock = (blockId: string, config?: RequestConfig) => {
 export const getBlockVersions = (
   blockId: string,
   query: PaginationQuery = { page: 1, pageSize: 20 },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
-  return unwrap<PaginatedResult<BlockVersion>>(api.get(`/blocks/${blockId}/versions`, { ...query }, config));
+  return unwrap<PaginatedResult<BlockVersion>>(
+    api.get(`/blocks/${blockId}/versions`, { ...query }, config),
+  );
 };
 
 export const batchBlocks = (payload: BatchBlocksPayload, config?: RequestConfig) => {

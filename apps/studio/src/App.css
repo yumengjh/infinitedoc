@@ -1,4 +1,3 @@
-
 .dashboard {
   height: 100vh;
   background: #ffffff;
@@ -163,15 +162,14 @@
   .toolbar-container .toolbar {
     max-width: 100%;
   }
-  
+
   .dashboard-content > * {
     max-width: 100%;
     padding: 0 12px;
   }
-  
+
   .dashboard-main > .header {
     padding-left: 0;
     left: 0;
   }
-  
 }

@@ -70,7 +70,7 @@ const toRenderItems = (blocks: FlatContentBlock[]): FlatRenderBlock[] => {
 
 const mergeByBlockId = (
   existing: FlatRenderBlock[],
-  incoming: FlatRenderBlock[]
+  incoming: FlatRenderBlock[],
 ): FlatRenderBlock[] => {
   if (incoming.length === 0) return existing;
   const seen = new Set(existing.map((item) => item.blockId));
@@ -121,22 +121,16 @@ export const useDocumentReadStore = create<DocumentReadState & DocumentReadActio
       const flatBlocks = contentTreeToFlatBlocks(content);
       const items = toRenderItems(flatBlocks);
       const responseTotal =
-        toSafeNumber(content.pagination?.totalBlocks) ??
-        toSafeNumber(content.totalBlocks);
+        toSafeNumber(content.pagination?.totalBlocks) ?? toSafeNumber(content.totalBlocks);
       const totalBlocks = Math.max(responseTotal ?? 0, items.length);
-      const responseHasMore =
-        content.pagination?.hasMore ??
-        content.hasMore ??
-        false;
+      const responseHasMore = content.pagination?.hasMore ?? content.hasMore ?? false;
       const inferredHasMore = totalBlocks > 0 ? items.length < totalBlocks : false;
       const responseNextStartBlockId =
-        content.pagination?.nextStartBlockId ??
-        content.nextStartBlockId ??
-        null;
+        content.pagination?.nextStartBlockId ?? content.nextStartBlockId ?? null;
       const fallbackNextStartBlockId = items.length > 0 ? items[items.length - 1]?.blockId : null;
       const nextStartBlockId =
         responseNextStartBlockId ||
-        ((responseHasMore || inferredHasMore) ? fallbackNextStartBlockId : null);
+        (responseHasMore || inferredHasMore ? fallbackNextStartBlockId : null);
       const hasMore = Boolean((responseHasMore || inferredHasMore) && nextStartBlockId);
 
       set({
@@ -182,29 +176,21 @@ export const useDocumentReadStore = create<DocumentReadState & DocumentReadActio
       const mergedItems = mergeByBlockId(get().items, incoming);
       const prevReturned = state.items.length;
       const responseTotal =
-        toSafeNumber(content.pagination?.totalBlocks) ??
-        toSafeNumber(content.totalBlocks);
-      const totalBlocks = Math.max(
-        state.totalBlocks || 0,
-        responseTotal ?? 0,
-        mergedItems.length
-      );
-      const responseHasMore =
-        content.pagination?.hasMore ??
-        content.hasMore ??
-        false;
+        toSafeNumber(content.pagination?.totalBlocks) ?? toSafeNumber(content.totalBlocks);
+      const totalBlocks = Math.max(state.totalBlocks || 0, responseTotal ?? 0, mergedItems.length);
+      const responseHasMore = content.pagination?.hasMore ?? content.hasMore ?? false;
       const inferredHasMore = totalBlocks > 0 ? mergedItems.length < totalBlocks : false;
       const progressed = mergedItems.length > prevReturned;
       const responseNextStartBlockId =
-        content.pagination?.nextStartBlockId ??
-        content.nextStartBlockId ??
-        null;
+        content.pagination?.nextStartBlockId ?? content.nextStartBlockId ?? null;
       const fallbackNextStartBlockId =
         incoming.length > 0 ? incoming[incoming.length - 1]?.blockId : state.nextStartBlockId;
       const nextStartBlockId =
         responseNextStartBlockId ||
         ((responseHasMore || inferredHasMore) && progressed ? fallbackNextStartBlockId : null);
-      const hasMore = Boolean((responseHasMore || inferredHasMore) && progressed && nextStartBlockId);
+      const hasMore = Boolean(
+        (responseHasMore || inferredHasMore) && progressed && nextStartBlockId,
+      );
 
       set((prev) => ({
         ...prev,

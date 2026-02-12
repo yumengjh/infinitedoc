@@ -1,9 +1,6 @@
 import { create } from "zustand";
 import { apiV1 } from "../api_v1";
-import type {
-  DeepPartial,
-  PreferenceSettings,
-} from "../types/preferences";
+import type { DeepPartial, PreferenceSettings } from "../types/preferences";
 import {
   DEFAULT_PREFERENCE_SETTINGS,
   MAX_CONTENT_WIDTH,
@@ -40,7 +37,7 @@ type PreferenceActions = {
   saveUserSettings: (patch: DeepPartial<PreferenceSettings>) => Promise<boolean>;
   saveWorkspaceSettings: (
     patch: DeepPartial<PreferenceSettings>,
-    workspaceId?: string | null
+    workspaceId?: string | null,
   ) => Promise<boolean>;
   clearWorkspaceSettings: (workspaceId?: string | null) => Promise<boolean>;
   resetErrors: () => void;
@@ -65,30 +62,22 @@ const clampFontSize = (value: unknown, fallback: number): number => {
   return Math.max(MIN_FONT_SIZE, Math.min(MAX_FONT_SIZE, Math.round(value)));
 };
 
-const normalizeSettings = (
-  input?: DeepPartial<PreferenceSettings> | null
-): PreferenceSettings => {
+const normalizeSettings = (input?: DeepPartial<PreferenceSettings> | null): PreferenceSettings => {
   const source = input || {};
   return {
     reader: {
       contentWidth: clampWidth(
         source.reader?.contentWidth,
-        DEFAULT_PREFERENCE_SETTINGS.reader.contentWidth
+        DEFAULT_PREFERENCE_SETTINGS.reader.contentWidth,
       ),
-      fontSize: clampFontSize(
-        source.reader?.fontSize,
-        DEFAULT_PREFERENCE_SETTINGS.reader.fontSize
-      ),
+      fontSize: clampFontSize(source.reader?.fontSize, DEFAULT_PREFERENCE_SETTINGS.reader.fontSize),
     },
     editor: {
       contentWidth: clampWidth(
         source.editor?.contentWidth,
-        DEFAULT_PREFERENCE_SETTINGS.editor.contentWidth
+        DEFAULT_PREFERENCE_SETTINGS.editor.contentWidth,
       ),
-      fontSize: clampFontSize(
-        source.editor?.fontSize,
-        DEFAULT_PREFERENCE_SETTINGS.editor.fontSize
-      ),
+      fontSize: clampFontSize(source.editor?.fontSize, DEFAULT_PREFERENCE_SETTINGS.editor.fontSize),
     },
     advanced: {
       compactList:
@@ -96,8 +85,7 @@ const normalizeSettings = (
           ? source.advanced.compactList
           : DEFAULT_PREFERENCE_SETTINGS.advanced.compactList,
       codeFontFamily:
-        typeof source.advanced?.codeFontFamily === "string" &&
-        source.advanced.codeFontFamily.trim()
+        typeof source.advanced?.codeFontFamily === "string" && source.advanced.codeFontFamily.trim()
           ? source.advanced.codeFontFamily.trim()
           : DEFAULT_PREFERENCE_SETTINGS.advanced.codeFontFamily,
     },
@@ -106,32 +94,26 @@ const normalizeSettings = (
 
 const mergeSettings = (
   base: PreferenceSettings,
-  patch?: DeepPartial<PreferenceSettings> | null
+  patch?: DeepPartial<PreferenceSettings> | null,
 ): PreferenceSettings => {
   if (!patch) return base;
   return normalizeSettings({
     reader: {
-      contentWidth:
-        patch.reader?.contentWidth ?? base.reader.contentWidth,
+      contentWidth: patch.reader?.contentWidth ?? base.reader.contentWidth,
       fontSize: patch.reader?.fontSize ?? base.reader.fontSize,
     },
     editor: {
-      contentWidth:
-        patch.editor?.contentWidth ?? base.editor.contentWidth,
+      contentWidth: patch.editor?.contentWidth ?? base.editor.contentWidth,
       fontSize: patch.editor?.fontSize ?? base.editor.fontSize,
     },
     advanced: {
-      compactList:
-        patch.advanced?.compactList ?? base.advanced.compactList,
-      codeFontFamily:
-        patch.advanced?.codeFontFamily ?? base.advanced.codeFontFamily,
+      compactList: patch.advanced?.compactList ?? base.advanced.compactList,
+      codeFontFamily: patch.advanced?.codeFontFamily ?? base.advanced.codeFontFamily,
     },
   });
 };
 
-const toPartialSettings = (
-  settings: PreferenceSettings
-): DeepPartial<PreferenceSettings> => {
+const toPartialSettings = (settings: PreferenceSettings): DeepPartial<PreferenceSettings> => {
   return {
     reader: {
       contentWidth: settings.reader.contentWidth,
@@ -150,7 +132,7 @@ const toPartialSettings = (
 
 const computeEffectiveSettings = (
   userSettings: PreferenceSettings,
-  workspaceSettings: DeepPartial<PreferenceSettings> | null
+  workspaceSettings: DeepPartial<PreferenceSettings> | null,
 ) => {
   if (!workspaceSettings) return userSettings;
   return mergeSettings(userSettings, workspaceSettings);
@@ -174,33 +156,29 @@ const hasAnySettingValue = (input?: DeepPartial<PreferenceSettings> | null): boo
   return false;
 };
 
-export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
-  (set, get) => {
-    const syncEffectiveSettings = async (workspaceId: string | null) => {
-      const data = await apiV1.settings.getEffectiveSettings(workspaceId);
-      const nextUserSettings = normalizeSettings(
-        data.userSettings || data.effectiveSettings
-      );
-      const nextWorkspaceSettings =
-        workspaceId && hasAnySettingValue(data.workspaceSettings)
-          ? data.workspaceSettings || null
-          : null;
-      const nextEffectiveSettings = normalizeSettings(
-        data.effectiveSettings ||
-          computeEffectiveSettings(nextUserSettings, nextWorkspaceSettings)
-      );
+export const usePreferenceStore = create<PreferenceState & PreferenceActions>((set, get) => {
+  const syncEffectiveSettings = async (workspaceId: string | null) => {
+    const data = await apiV1.settings.getEffectiveSettings(workspaceId);
+    const nextUserSettings = normalizeSettings(data.userSettings || data.effectiveSettings);
+    const nextWorkspaceSettings =
+      workspaceId && hasAnySettingValue(data.workspaceSettings)
+        ? data.workspaceSettings || null
+        : null;
+    const nextEffectiveSettings = normalizeSettings(
+      data.effectiveSettings || computeEffectiveSettings(nextUserSettings, nextWorkspaceSettings),
+    );
 
-      set((state) => ({
-        ...state,
-        workspaceId,
-        userSettings: nextUserSettings,
-        workspaceSettings: nextWorkspaceSettings,
-        effectiveSettings: nextEffectiveSettings,
-        sources: data.sources || {},
-      }));
-    };
+    set((state) => ({
+      ...state,
+      workspaceId,
+      userSettings: nextUserSettings,
+      workspaceSettings: nextWorkspaceSettings,
+      effectiveSettings: nextEffectiveSettings,
+      sources: data.sources || {},
+    }));
+  };
 
-    return {
+  return {
     workspaceId: null,
     userSettings: DEFAULT_PREFERENCE_SETTINGS,
     workspaceSettings: null,
@@ -272,10 +250,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
       set((state) => ({
         ...state,
         userSettings: nextUser,
-        effectiveSettings: computeEffectiveSettings(
-          nextUser,
-          state.workspaceSettings
-        ),
+        effectiveSettings: computeEffectiveSettings(nextUser, state.workspaceSettings),
         status: {
           ...state.status,
           saveUser: "loading",
@@ -286,9 +261,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
         },
       }));
       try {
-        await apiV1.settings.updateMySettings(
-          toPartialSettings(nextUser)
-        );
+        await apiV1.settings.updateMySettings(toPartialSettings(nextUser));
         await syncEffectiveSettings(get().workspaceId);
         set((state) => ({
           ...state,
@@ -304,10 +277,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
         set((state) => ({
           ...state,
           userSettings: prevUser,
-          effectiveSettings: computeEffectiveSettings(
-            prevUser,
-            state.workspaceSettings
-          ),
+          effectiveSettings: computeEffectiveSettings(prevUser, state.workspaceSettings),
           status: {
             ...state.status,
             saveUser: "error",
@@ -345,10 +315,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
         ...state,
         workspaceId: targetWorkspaceId,
         workspaceSettings: nextWorkspacePartial,
-        effectiveSettings: computeEffectiveSettings(
-          state.userSettings,
-          nextWorkspacePartial
-        ),
+        effectiveSettings: computeEffectiveSettings(state.userSettings, nextWorkspacePartial),
         status: {
           ...state.status,
           saveWorkspace: "loading",
@@ -360,10 +327,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
       }));
 
       try {
-        await apiV1.settings.updateWorkspaceSettings(
-          targetWorkspaceId,
-          nextWorkspacePartial
-        );
+        await apiV1.settings.updateWorkspaceSettings(targetWorkspaceId, nextWorkspacePartial);
         await syncEffectiveSettings(targetWorkspaceId);
         set((state) => ({
           ...state,
@@ -379,10 +343,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
         set((state) => ({
           ...state,
           workspaceSettings: prevWorkspace,
-          effectiveSettings: computeEffectiveSettings(
-            state.userSettings,
-            prevWorkspace
-          ),
+          effectiveSettings: computeEffectiveSettings(state.userSettings, prevWorkspace),
           status: {
             ...state.status,
             saveWorkspace: "error",
@@ -431,10 +392,7 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
         set((state) => ({
           ...state,
           workspaceSettings: prevWorkspace,
-          effectiveSettings: computeEffectiveSettings(
-            state.userSettings,
-            prevWorkspace
-          ),
+          effectiveSettings: computeEffectiveSettings(state.userSettings, prevWorkspace),
           status: {
             ...state.status,
             saveWorkspace: "error",
@@ -455,5 +413,4 @@ export const usePreferenceStore = create<PreferenceState & PreferenceActions>(
       }));
     },
   };
-  }
-);
+});

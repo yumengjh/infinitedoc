@@ -12,7 +12,7 @@ export const addFavorite = (payload: AddFavoritePayload, config?: RequestConfig)
 
 export const listFavorites = (
   query: PaginationQuery = { page: 1, pageSize: 20 },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<PaginatedResult<FavoriteItem>>(api.get("/favorites", { ...query }, config));
 };

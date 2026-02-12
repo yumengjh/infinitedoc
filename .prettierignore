@@ -1,0 +1,25 @@
+# dependencies
+node_modules
+.pnpm-store
+
+# package manager metadata
+pnpm-lock.yaml
+
+# build outputs
+dist
+coverage
+apps/*/dist
+packages/*/dist
+apps/*/.nuxt
+apps/*/.output
+apps/*/.nitro
+apps/*/.cache
+.turbo
+.cache
+.cspellcache
+
+# runtime/log files
+*.log
+
+# generated docs / debug dumps
+apps/publish/ERROR.md

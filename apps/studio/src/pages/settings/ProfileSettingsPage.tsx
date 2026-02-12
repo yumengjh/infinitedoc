@@ -205,12 +205,7 @@ export default function ProfileSettingsPage() {
       </header>
 
       {error && (
-        <Alert
-          className="profile-settings-alert"
-          type="warning"
-          showIcon
-          message={error}
-        />
+        <Alert className="profile-settings-alert" type="warning" showIcon message={error} />
       )}
 
       <Card loading={loading} title="账户基础信息（只读）">

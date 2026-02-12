@@ -1,4 +1,11 @@
-import { useEffect, useMemo, useRef, useState, type MouseEvent as ReactMouseEvent, type ReactNode } from "react";
+import {
+  useEffect,
+  useMemo,
+  useRef,
+  useState,
+  type MouseEvent as ReactMouseEvent,
+  type ReactNode,
+} from "react";
 import { NavLink, useNavigate } from "react-router-dom";
 import { Avatar, Button, Dropdown, Input, Tooltip, message, type MenuProps } from "antd";
 import {
@@ -340,8 +347,17 @@ export default function Sidebar({ items: _items = [] }: SidebarProps) {
             <div className="sidebar-workspace">
               <BookOutlined className="workspace-icon" />
               <span className="workspace-name">{currentWorkspace?.name || "未选择工作空间"}</span>
-              <Dropdown menu={{ items: workspaceMenuItems }} trigger={["click"]} placement="bottomLeft">
-                <Button type="text" size="small" icon={<MoreOutlined />} className="workspace-more" />
+              <Dropdown
+                menu={{ items: workspaceMenuItems }}
+                trigger={["click"]}
+                placement="bottomLeft"
+              >
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<MoreOutlined />}
+                  className="workspace-more"
+                />
               </Dropdown>
             </div>
 
@@ -363,20 +379,29 @@ export default function Sidebar({ items: _items = [] }: SidebarProps) {
                 }}
                 trigger={["click"]}
               >
-                <Button type="text" size="small" icon={<PlusOutlined />} className="search-add-btn" loading={creatingDoc} />
+                <Button
+                  type="text"
+                  size="small"
+                  icon={<PlusOutlined />}
+                  className="search-add-btn"
+                  loading={creatingDoc}
+                />
               </Dropdown>
             </div>
           </div>
 
           <div className="sidebar-fixed">
             {navItems.map((item) => (
-              <NavLink key={item.key} to={item.path} className={({ isActive }) => `fixed-item ${isActive ? "active" : ""}`}>
+              <NavLink
+                key={item.key}
+                to={item.path}
+                className={({ isActive }) => `fixed-item ${isActive ? "active" : ""}`}
+              >
                 {(item.key === "home" || item.key === "dash") && <HomeOutlined />}
                 {item.key === "api-test" && <ToolOutlined />}
-                {item.key !== "home" &&
-                  item.key !== "dash" &&
-                  item.key !== "api-test" &&
-                  <HomeOutlined />}
+                {item.key !== "home" && item.key !== "dash" && item.key !== "api-test" && (
+                  <HomeOutlined />
+                )}
                 <span>{item.label}</span>
               </NavLink>
             ))}
@@ -428,7 +453,9 @@ export default function Sidebar({ items: _items = [] }: SidebarProps) {
                 ))}
                 {filteredDocs.length === 0 && (
                   <div className="document-item">
-                    <span className="document-title">{docListStatus === "loading" ? "加载中..." : "暂无文档"}</span>
+                    <span className="document-title">
+                      {docListStatus === "loading" ? "加载中..." : "暂无文档"}
+                    </span>
                   </div>
                 )}
                 {docListStatus === "error" && docError && (
@@ -461,10 +488,7 @@ export default function Sidebar({ items: _items = [] }: SidebarProps) {
               aria-hidden="true"
               focusable="false"
             >
-              <path
-                d="M753.613 996.727l-484.233-485.222 485.222-484.233z"
-                fill="currentColor"
-              />
+              <path d="M753.613 996.727l-484.233-485.222 485.222-484.233z" fill="currentColor" />
             </svg>
           </button>
         </Tooltip>

@@ -22,7 +22,10 @@ function renderNode(node: RenderNode) {
   if (type === "heading") {
     return (
       <h2 style={{ margin: 0 }}>
-        {content} <small style={{ color: "#999" }}>({node.id}@{node.ver})</small>
+        {content}{" "}
+        <small style={{ color: "#999" }}>
+          ({node.id}@{node.ver})
+        </small>
       </h2>
     );
   }
@@ -30,7 +33,10 @@ function renderNode(node: RenderNode) {
   if (type === "paragraph") {
     return (
       <p style={{ margin: 0 }}>
-        {content} <small style={{ color: "#999" }}>({node.id}@{node.ver})</small>
+        {content}{" "}
+        <small style={{ color: "#999" }}>
+          ({node.id}@{node.ver})
+        </small>
       </p>
     );
   }
@@ -120,9 +126,7 @@ export default function DocumentEditorDemo() {
   return (
     <div style={{ padding: 24, fontFamily: "sans-serif" }}>
       <h1 style={{ marginTop: 0 }}>Document Engine Demo</h1>
-      <p style={{ color: "#666" }}>
-        这个演示可以做种文档，创建和更新块，并让你查看历史文档版本。
-      </p>
+      <p style={{ color: "#666" }}>这个演示可以做种文档，创建和更新块，并让你查看历史文档版本。</p>
 
       <div style={{ display: "flex", gap: 16, alignItems: "flex-start" }}>
         <div style={{ width: 260 }}>

@@ -1,6 +1,0 @@
-.nuxt
-.output
-dist
-node_modules
-pnpm-lock.yaml
-ERROR.md

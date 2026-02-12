@@ -9,7 +9,7 @@ export interface UploadAssetPayload {
 
 export const uploadAsset = (
   payload: UploadAssetPayload,
-  config?: RequestConfig & { additionalData?: Record<string, string | Blob> }
+  config?: RequestConfig & { additionalData?: Record<string, string | Blob> },
 ) => {
   const { file, workspaceId } = payload;
   const additionalData = { workspaceId, ...(config?.additionalData ?? {}) };
@@ -18,7 +18,7 @@ export const uploadAsset = (
 
 export const listAssets = (
   query: PaginationQuery & { workspaceId: string },
-  config?: RequestConfig
+  config?: RequestConfig,
 ) => {
   return unwrap<PaginatedResult<AssetItem>>(api.get("/assets", { ...query }, config));
 };

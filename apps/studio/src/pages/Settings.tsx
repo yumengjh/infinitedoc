@@ -67,11 +67,9 @@ export default function SettingsPage() {
   const [userEditorWidth, setUserEditorWidth] = useState(userSettings.editor.contentWidth);
   const [userReaderFontSize, setUserReaderFontSize] = useState(userSettings.reader.fontSize);
   const [userEditorFontSize, setUserEditorFontSize] = useState(userSettings.editor.fontSize);
-  const [userCompactList, setUserCompactList] = useState(
-    userSettings.advanced.compactList
-  );
+  const [userCompactList, setUserCompactList] = useState(userSettings.advanced.compactList);
   const [userCodeFontFamily, setUserCodeFontFamily] = useState(
-    userSettings.advanced.codeFontFamily
+    userSettings.advanced.codeFontFamily,
   );
 
   const workspaceEffective = useMemo(() => {
@@ -79,49 +77,41 @@ export default function SettingsPage() {
     return {
       reader: {
         contentWidth:
-          workspaceSettings.reader?.contentWidth ??
-          effectiveSettings.reader.contentWidth,
-        fontSize:
-          workspaceSettings.reader?.fontSize ??
-          effectiveSettings.reader.fontSize,
+          workspaceSettings.reader?.contentWidth ?? effectiveSettings.reader.contentWidth,
+        fontSize: workspaceSettings.reader?.fontSize ?? effectiveSettings.reader.fontSize,
       },
       editor: {
         contentWidth:
-          workspaceSettings.editor?.contentWidth ??
-          effectiveSettings.editor.contentWidth,
-        fontSize:
-          workspaceSettings.editor?.fontSize ??
-          effectiveSettings.editor.fontSize,
+          workspaceSettings.editor?.contentWidth ?? effectiveSettings.editor.contentWidth,
+        fontSize: workspaceSettings.editor?.fontSize ?? effectiveSettings.editor.fontSize,
       },
       advanced: {
         compactList:
-          workspaceSettings.advanced?.compactList ??
-          effectiveSettings.advanced.compactList,
+          workspaceSettings.advanced?.compactList ?? effectiveSettings.advanced.compactList,
         codeFontFamily:
-          workspaceSettings.advanced?.codeFontFamily ??
-          effectiveSettings.advanced.codeFontFamily,
+          workspaceSettings.advanced?.codeFontFamily ?? effectiveSettings.advanced.codeFontFamily,
       },
     };
   }, [effectiveSettings, workspaceSettings]);
 
   const [workspaceEnabled, setWorkspaceEnabled] = useState(Boolean(workspaceSettings));
   const [workspaceReaderWidth, setWorkspaceReaderWidth] = useState(
-    workspaceEffective.reader.contentWidth
+    workspaceEffective.reader.contentWidth,
   );
   const [workspaceEditorWidth, setWorkspaceEditorWidth] = useState(
-    workspaceEffective.editor.contentWidth
+    workspaceEffective.editor.contentWidth,
   );
   const [workspaceReaderFontSize, setWorkspaceReaderFontSize] = useState(
-    workspaceEffective.reader.fontSize
+    workspaceEffective.reader.fontSize,
   );
   const [workspaceEditorFontSize, setWorkspaceEditorFontSize] = useState(
-    workspaceEffective.editor.fontSize
+    workspaceEffective.editor.fontSize,
   );
   const [workspaceCompactList, setWorkspaceCompactList] = useState(
-    workspaceEffective.advanced.compactList
+    workspaceEffective.advanced.compactList,
   );
   const [workspaceCodeFontFamily, setWorkspaceCodeFontFamily] = useState(
-    workspaceEffective.advanced.codeFontFamily
+    workspaceEffective.advanced.codeFontFamily,
   );
 
   useEffect(() => {
@@ -210,13 +200,12 @@ export default function SettingsPage() {
           codeFontFamily: workspaceCodeFontFamily.trim(),
         },
       },
-      workspaceId
+      workspaceId,
     );
     if (ok) message.success("工作空间覆盖配置已保存");
   };
 
-  const commonError =
-    errors.user || errors.workspace || errors.saveUser || errors.saveWorkspace;
+  const commonError = errors.user || errors.workspace || errors.saveUser || errors.saveWorkspace;
 
   return (
     <div className="settings-page">
@@ -232,12 +221,7 @@ export default function SettingsPage() {
       </header>
 
       {commonError && (
-        <Alert
-          className="settings-alert"
-          type="warning"
-          showIcon
-          message={commonError}
-        />
+        <Alert className="settings-alert" type="warning" showIcon message={commonError} />
       )}
 
       <Card className="settings-tabs-card">
@@ -262,9 +246,7 @@ export default function SettingsPage() {
                         max={MAX_CONTENT_WIDTH}
                         value={userReaderWidth}
                         onChange={(value) =>
-                          setUserReaderWidth(
-                            Number(value) || userSettings.reader.contentWidth
-                          )
+                          setUserReaderWidth(Number(value) || userSettings.reader.contentWidth)
                         }
                         addonAfter="px"
                       />
@@ -276,9 +258,7 @@ export default function SettingsPage() {
                         max={MAX_FONT_SIZE}
                         value={userReaderFontSize}
                         onChange={(value) =>
-                          setUserReaderFontSize(
-                            Number(value) || userSettings.reader.fontSize
-                          )
+                          setUserReaderFontSize(Number(value) || userSettings.reader.fontSize)
                         }
                         addonAfter="px"
                       />
@@ -290,9 +270,7 @@ export default function SettingsPage() {
                         max={MAX_CONTENT_WIDTH}
                         value={userEditorWidth}
                         onChange={(value) =>
-                          setUserEditorWidth(
-                            Number(value) || userSettings.editor.contentWidth
-                          )
+                          setUserEditorWidth(Number(value) || userSettings.editor.contentWidth)
                         }
                         addonAfter="px"
                       />
@@ -304,9 +282,7 @@ export default function SettingsPage() {
                         max={MAX_FONT_SIZE}
                         value={userEditorFontSize}
                         onChange={(value) =>
-                          setUserEditorFontSize(
-                            Number(value) || userSettings.editor.fontSize
-                          )
+                          setUserEditorFontSize(Number(value) || userSettings.editor.fontSize)
                         }
                         addonAfter="px"
                       />
@@ -353,10 +329,7 @@ export default function SettingsPage() {
                         <Tag color="gold">{workspaceName || workspaceId}</Tag>
                         <label className="settings-field settings-field-inline settings-inline-toggle">
                           <span>启用覆盖</span>
-                          <Switch
-                            checked={workspaceEnabled}
-                            onChange={setWorkspaceEnabled}
-                          />
+                          <Switch checked={workspaceEnabled} onChange={setWorkspaceEnabled} />
                         </label>
                       </div>
                       <div className="settings-form-grid">
@@ -369,7 +342,7 @@ export default function SettingsPage() {
                             disabled={!workspaceEnabled}
                             onChange={(value) =>
                               setWorkspaceReaderWidth(
-                                Number(value) || workspaceEffective.reader.contentWidth
+                                Number(value) || workspaceEffective.reader.contentWidth,
                               )
                             }
                             addonAfter="px"
@@ -384,7 +357,7 @@ export default function SettingsPage() {
                             disabled={!workspaceEnabled}
                             onChange={(value) =>
                               setWorkspaceReaderFontSize(
-                                Number(value) || workspaceEffective.reader.fontSize
+                                Number(value) || workspaceEffective.reader.fontSize,
                               )
                             }
                             addonAfter="px"
@@ -399,7 +372,7 @@ export default function SettingsPage() {
                             disabled={!workspaceEnabled}
                             onChange={(value) =>
                               setWorkspaceEditorWidth(
-                                Number(value) || workspaceEffective.editor.contentWidth
+                                Number(value) || workspaceEffective.editor.contentWidth,
                               )
                             }
                             addonAfter="px"
@@ -414,7 +387,7 @@ export default function SettingsPage() {
                             disabled={!workspaceEnabled}
                             onChange={(value) =>
                               setWorkspaceEditorFontSize(
-                                Number(value) || workspaceEffective.editor.fontSize
+                                Number(value) || workspaceEffective.editor.fontSize,
                               )
                             }
                             addonAfter="px"
@@ -436,9 +409,7 @@ export default function SettingsPage() {
                           <Input
                             value={workspaceCodeFontFamily}
                             disabled={!workspaceEnabled}
-                            onChange={(event) =>
-                              setWorkspaceCodeFontFamily(event.target.value)
-                            }
+                            onChange={(event) => setWorkspaceCodeFontFamily(event.target.value)}
                           />
                         </label>
                       </div>

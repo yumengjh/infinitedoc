@@ -15,7 +15,7 @@ export const getRemoteSnapshotCache = (docId: string): RemoteSnapshotCacheItem |
 
 export const setRemoteSnapshotCache = (
   docId: string,
-  payload: { rootBlockId: string | null; blocks: RemoteTopLevelBlock[] }
+  payload: { rootBlockId: string | null; blocks: RemoteTopLevelBlock[] },
 ) => {
   if (!docId) return;
   snapshotCache.set(docId, {

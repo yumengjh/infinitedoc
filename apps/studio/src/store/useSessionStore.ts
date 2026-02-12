@@ -83,7 +83,8 @@ const isNoPendingCommitError = (error: unknown): boolean => {
   const code = typeof errObj.code === "string" ? errObj.code.trim().toUpperCase() : "";
   const message = getErrorMessage(error).toLowerCase();
 
-  const hitCode = code === "NO_PENDING_VERSIONS" || code === "NO_PENDING_VERSION" || code === "NO_PENDING";
+  const hitCode =
+    code === "NO_PENDING_VERSIONS" || code === "NO_PENDING_VERSION" || code === "NO_PENDING";
   const hitMessage =
     message.includes("没有待创建的版本") ||
     message.includes("无需提交") ||
@@ -186,7 +187,8 @@ export const useSessionStore = create<SessionState & SessionActions>((set, get) 
       ...state,
       workspaceList,
       currentWorkspace: state.workspaceId
-        ? workspaceList.find((item) => item.workspaceId === state.workspaceId) || state.currentWorkspace
+        ? workspaceList.find((item) => item.workspaceId === state.workspaceId) ||
+          state.currentWorkspace
         : null,
     }));
   },
@@ -382,9 +384,7 @@ export const useSessionStore = create<SessionState & SessionActions>((set, get) 
     set((state) => ({
       ...state,
       currentDoc:
-        state.currentDoc?.docId === doc.docId
-          ? { ...state.currentDoc, ...doc }
-          : state.currentDoc,
+        state.currentDoc?.docId === doc.docId ? { ...state.currentDoc, ...doc } : state.currentDoc,
     }));
   },
 
@@ -420,7 +420,8 @@ export const useSessionStore = create<SessionState & SessionActions>((set, get) 
       const matchedWorkspace = persistedWorkspaceId
         ? workspaceList.find((item) => item.workspaceId === persistedWorkspaceId)
         : null;
-      const targetWorkspaceId = matchedWorkspace?.workspaceId || workspaceList[0]?.workspaceId || null;
+      const targetWorkspaceId =
+        matchedWorkspace?.workspaceId || workspaceList[0]?.workspaceId || null;
 
       if (!targetWorkspaceId) {
         get().setWorkspace(null);
